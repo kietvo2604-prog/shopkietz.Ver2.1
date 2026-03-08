@@ -22,6 +22,15 @@ type TopupRequest = {
   created_at: string;
 };
 
+type Order = {
+  id: string;
+  product_name: string;
+  product_category: string;
+  price: number;
+  status: string;
+  created_at: string;
+};
+
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const History = () => {
@@ -30,6 +39,7 @@ const History = () => {
   const initialTab = (searchParams.get("tab") as Tab) || "orders";
   const [tab, setTab] = useState<Tab>(initialTab);
   const [topups, setTopups] = useState<TopupRequest[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileBalance, setProfileBalance] = useState(0);
 
