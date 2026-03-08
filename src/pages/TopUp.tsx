@@ -14,7 +14,6 @@ const banks = [
 const eWallets = [
   { name: "ZaloPay", number: "0987672604", holder: "VO ANH KIET", hasQR: true },
 ];
-];
 
 const cardTypes = [
   { id: "viettel", name: "Viettel", color: "text-red-400" },
