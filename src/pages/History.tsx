@@ -338,7 +338,7 @@ const History = () => {
                             {event.type === "topup" ? (
                               <ArrowDownLeft className="w-4 h-4 text-primary" />
                             ) : (
-                              <XCircle className="w-4 h-4 text-destructive" />
+                              <ArrowUpRight className="w-4 h-4 text-destructive" />
                             )}
                             <div>
                               <p className="text-sm text-foreground">{event.label}</p>
@@ -352,7 +352,8 @@ const History = () => {
                               event.type === "topup" ? "text-primary" : "text-destructive"
                             }`}
                           >
-                            {event.type === "topup" ? `+${formatVND(event.amount)}` : "Từ chối"}
+                            {event.type === "topup" ? `+${formatVND(event.amount)}` : `-${formatVND(event.amount)}`}
+                          </span>
                           </span>
                         </div>
                       ))}
