@@ -96,10 +96,12 @@ const Header = () => {
                     <div className="px-4 py-2.5 border-b border-border">
                       <p className="text-sm font-medium text-foreground">{displayName}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
+                      {balance !== null && (
+                        <p className="text-xs font-bold text-primary mt-1">
+                          💰 Số dư: {balance.toLocaleString("vi-VN")}đ
+                        </p>
+                      )}
                     </div>
-                    <a href="/lich-su?tab=balance" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                      <Wallet className="w-4 h-4" /> Số dư
-                    </a>
                     <a href="/lich-su" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                       <User className="w-4 h-4" /> Tài khoản
                     </a>
