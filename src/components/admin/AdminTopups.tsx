@@ -34,13 +34,18 @@ const AdminTopups = () => {
   useEffect(() => { fetchRequests(); }, [filter]);
 
   const handleAction = async (id: string, userId: string, amount: number, action: "approved" | "rejected") => {
+    setActionLoading(id);
     await supabase.from("topup_requests").update({ status: action, reviewed_by: user?.id }).eq("id", id);
     if (action === "approved") {
       const { data: profile } = await supabase.from("profiles").select("balance").eq("user_id", userId).single();
       if (profile) {
         await supabase.from("profiles").update({ balance: profile.balance + amount }).eq("user_id", userId);
       }
+      toast({ title: "✅ Thẻ đúng — Đã cộng tiền", description: `Đã cộng ${formatVND(amount)} vào tài khoản người dùng.` });
+    } else {
+      toast({ title: "❌ Thẻ sai — Đã từ chối", description: `Yêu cầu nạp ${formatVND(amount)} đã bị từ chối.`, variant: "destructive" });
     }
+    setActionLoading(null);
     fetchRequests();
   };
 
