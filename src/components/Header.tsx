@@ -99,6 +99,11 @@ const Header = () => {
                     <a href="/lich-su" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                       <User className="w-4 h-4" /> Tài khoản
                     </a>
+                    {isAdmin && (
+                      <a href="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-neon-orange hover:bg-muted transition-colors">
+                        <Shield className="w-4 h-4" /> Admin Dashboard
+                      </a>
+                    )}
                     <button
                       onClick={() => { signOut(); setUserMenuOpen(false); }}
                       className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors"
