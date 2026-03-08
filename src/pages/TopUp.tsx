@@ -162,24 +162,30 @@ const TopUp = () => {
             {/* Serial & Code */}
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Số Seri</label>
+                <label className="text-sm font-medium text-foreground mb-1 block">Số Seri</label>
+                <p className="text-xs text-muted-foreground mb-2">{currentCard.name}: {currentCard.serialHint}</p>
                 <input
                   type="text"
                   value={serial}
-                  onChange={(e) => setSerial(e.target.value)}
-                  placeholder="Nhập số Seri..."
-                  className="w-full bg-muted border border-border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
+                  onChange={(e) => { setSerial(e.target.value.replace(/\D/g, "")); setErrors((prev) => ({ ...prev, serial: undefined })); }}
+                  placeholder={`Nhập số Seri (${currentCard.serialHint})...`}
+                  maxLength={Math.max(...currentCard.serialLengths)}
+                  className={`w-full bg-muted border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all ${errors.serial ? "border-destructive" : "border-border"}`}
                 />
+                {errors.serial && <p className="text-xs text-destructive mt-1">{errors.serial}</p>}
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Mã thẻ</label>
+                <label className="text-sm font-medium text-foreground mb-1 block">Mã thẻ</label>
+                <p className="text-xs text-muted-foreground mb-2">{currentCard.name}: {currentCard.codeHint}</p>
                 <input
                   type="text"
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Nhập mã thẻ..."
-                  className="w-full bg-muted border border-border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
+                  onChange={(e) => { setCode(e.target.value.replace(/\D/g, "")); setErrors((prev) => ({ ...prev, code: undefined })); }}
+                  placeholder={`Nhập mã thẻ (${currentCard.codeHint})...`}
+                  maxLength={Math.max(...currentCard.codeLengths)}
+                  className={`w-full bg-muted border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all ${errors.code ? "border-destructive" : "border-border"}`}
                 />
+                {errors.code && <p className="text-xs text-destructive mt-1">{errors.code}</p>}
               </div>
             </div>
 
