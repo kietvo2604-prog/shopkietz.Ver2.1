@@ -5,14 +5,14 @@ import Footer from "@/components/Footer";
 import { CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle, AlertTriangle, ArrowRight } from "lucide-react";
 
 const banks = [
-  { name: "Vietcombank", number: "1234567890", holder: "NGUYEN VAN KIETZ" },
-  { name: "MB Bank", number: "0987654321", holder: "NGUYEN VAN KIETZ" },
-  { name: "Techcombank", number: "1122334455", holder: "NGUYEN VAN KIETZ" },
+  { name: "Vietcombank", number: "", holder: "" },
+  { name: "MB Bank", number: "", holder: "" },
+  { name: "Techcombank", number: "", holder: "" },
 ];
 
 const eWallets = [
-  { name: "Momo", number: "0912345678", holder: "NGUYEN VAN KIETZ" },
-  { name: "ZaloPay", number: "0912345678", holder: "NGUYEN VAN KIETZ" },
+  { name: "Momo", number: "", holder: "" },
+  { name: "ZaloPay", number: "0987672604", holder: "NGUYEN VAN KIETZ" },
 ];
 
 const cardTypes = [
