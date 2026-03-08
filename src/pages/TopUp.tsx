@@ -188,10 +188,10 @@ const TopUp = () => {
                 <Gift className="w-8 h-8 text-accent-foreground" />
                 <div>
                   <p className="font-bold text-accent-foreground">ƯU ĐÃI ĐẶC BIỆT</p>
-                  <p className="text-sm text-accent-foreground/80">Nạp qua ATM/Ví điện tử nhận thêm +20% giá trị!</p>
+                  <p className="text-sm text-accent-foreground/80">Nạp qua ATM/Ví điện tử nhận 100% giá trị — không chiết khấu!</p>
                 </div>
               </div>
-              <span className="font-display text-2xl font-bold text-accent-foreground">+20%</span>
+              <span className="font-display text-2xl font-bold text-accent-foreground">100%</span>
             </div>
 
             {/* Bank accounts */}
