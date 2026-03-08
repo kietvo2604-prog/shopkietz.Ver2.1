@@ -84,9 +84,9 @@ const ProductCard = ({ name, price, stock, description, category }: ProductCardP
     setBuying(false);
     toast({
       title: "✅ Mua hàng thành công!",
-      description: `Bạn đã mua "${name}" với giá ${price}. Kiểm tra trong Lịch sử đơn hàng.`,
+      description: `Bạn đã mua "${name}" với giá ${price}. Vào Lịch sử đơn hàng để xem chi tiết.`,
     });
-    setTimeout(() => window.location.reload(), 1500);
+    window.location.href = "/lich-su?tab=orders";
   };
 
   return (
