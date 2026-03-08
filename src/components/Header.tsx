@@ -80,7 +80,7 @@ const Header = () => {
                   <ChevronDown className={`w-3 h-3 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
                 </button>
                 {historyOpen && (
-                  <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[180px] z-50">
+                  <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[180px] z-50 animate-fade-in origin-top">
                     <a href="/lich-su?tab=purchases" onClick={() => setHistoryOpen(false)} className="block px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                       Lịch sử đơn hàng
                     </a>
