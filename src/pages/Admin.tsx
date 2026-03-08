@@ -91,10 +91,10 @@ const Admin = () => {
         <div className="p-2 border-t border-border space-y-1">
           <a
             href="/"
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold gradient-primary text-primary-foreground hover:opacity-90 transition-all"
           >
             <ChevronLeft className="w-5 h-5 shrink-0" />
-            {sidebarOpen && <span>Về trang chủ</span>}
+            {sidebarOpen && <span>Về trang chủ Shop</span>}
           </a>
           <button
             onClick={signOut}
