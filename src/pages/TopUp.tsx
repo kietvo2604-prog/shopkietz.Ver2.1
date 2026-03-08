@@ -14,9 +14,9 @@ const eWallets = [
 ];
 
 const cardTypes = [
-  { id: "viettel", name: "Viettel", color: "text-red-400" },
-  { id: "vinaphone", name: "Vinaphone", color: "text-blue-400" },
-  { id: "mobifone", name: "Mobifone", color: "text-green-400" },
+  { id: "viettel", name: "Viettel", color: "text-red-400", serialLengths: [11, 14], codeLengths: [13, 15], serialHint: "11 hoặc 14 số", codeHint: "13 hoặc 15 số" },
+  { id: "vinaphone", name: "Vinaphone", color: "text-blue-400", serialLengths: [14], codeLengths: [12, 14], serialHint: "14 số", codeHint: "12 hoặc 14 số" },
+  { id: "mobifone", name: "Mobifone", color: "text-green-400", serialLengths: [15], codeLengths: [12], serialHint: "15 số", codeHint: "12 số" },
 ];
 
 const denominations = [10000, 20000, 50000, 100000, 200000, 500000];
