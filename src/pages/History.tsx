@@ -22,6 +22,15 @@ type TopupRequest = {
   created_at: string;
 };
 
+type Order = {
+  id: string;
+  product_name: string;
+  product_category: string;
+  price: number;
+  status: string;
+  created_at: string;
+};
+
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const History = () => {
@@ -30,6 +39,7 @@ const History = () => {
   const initialTab = (searchParams.get("tab") as Tab) || "orders";
   const [tab, setTab] = useState<Tab>(initialTab);
   const [topups, setTopups] = useState<TopupRequest[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [profileBalance, setProfileBalance] = useState(0);
 
@@ -42,11 +52,13 @@ const History = () => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
-      const [topupRes, profileRes] = await Promise.all([
+      const [topupRes, profileRes, ordersRes] = await Promise.all([
         supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("profiles").select("balance").eq("user_id", user.id).single(),
+        supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
       setTopups(topupRes.data || []);
+      setOrders((ordersRes.data as Order[]) || []);
       setProfileBalance(profileRes.data?.balance || 0);
       setLoading(false);
     };
@@ -84,19 +96,28 @@ const History = () => {
     }
   };
 
-  // Build balance change events from topups
-  const balanceEvents = topups
-    .filter((t) => t.status === "approved" || t.status === "rejected")
-    .map((t) => ({
-      id: t.id,
-      type: t.status === "approved" ? ("topup" as const) : ("rejected" as const),
-      label: t.method,
-      amount: t.status === "approved" ? t.amount : 0,
-      date: t.created_at,
-      status: t.status,
-    }));
+  // Build balance change events from topups AND orders
+  const balanceEvents = [
+    ...topups
+      .filter((t) => t.status === "approved")
+      .map((t) => ({
+        id: t.id,
+        type: "topup" as const,
+        label: t.method,
+        amount: t.amount,
+        date: t.created_at,
+      })),
+    ...orders.map((o) => ({
+      id: o.id,
+      type: "purchase" as const,
+      label: o.product_name,
+      amount: o.price,
+      date: o.created_at,
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const totalTopup = topups.filter((t) => t.status === "approved").reduce((s, t) => s + t.amount, 0);
+  const totalSpent = orders.reduce((s, o) => s + o.price, 0);
 
   if (authLoading) {
     return (
@@ -163,11 +184,36 @@ const History = () => {
             {/* Tab: Đơn hàng */}
             {tab === "orders" && (
               <div className="space-y-3 animate-slide-up">
-                <div className="bg-card border border-border rounded-xl p-10 text-center">
-                  <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Chưa có đơn hàng nào.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Các tài khoản bạn đã mua sẽ hiển thị ở đây.</p>
-                </div>
+                {orders.length === 0 ? (
+                  <div className="bg-card border border-border rounded-xl p-10 text-center">
+                    <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">Chưa có đơn hàng nào.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Các tài khoản bạn đã mua sẽ hiển thị ở đây.</p>
+                  </div>
+                ) : (
+                  orders.map((o) => (
+                    <div key={o.id} className="bg-card border border-primary/20 rounded-xl p-4 neon-card flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-foreground text-sm truncate">{o.product_name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <span className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-medium">{o.product_category}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(o.created_at).toLocaleString("vi-VN")}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-destructive text-sm">-{formatVND(o.price)}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 text-primary">
+                          <CheckCircle className="w-3 h-3" /> Thành công
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
@@ -268,7 +314,7 @@ const History = () => {
                       <ArrowUpRight className="w-6 h-6 text-accent" />
                     </div>
                     <p className="text-xs text-muted-foreground mb-1">Tổng chi tiêu</p>
-                    <p className="font-display text-xl font-bold text-accent">{formatVND(0)}</p>
+                    <p className="font-display text-xl font-bold text-accent">{formatVND(totalSpent)}</p>
                   </div>
                 </div>
 
@@ -292,7 +338,7 @@ const History = () => {
                             {event.type === "topup" ? (
                               <ArrowDownLeft className="w-4 h-4 text-primary" />
                             ) : (
-                              <XCircle className="w-4 h-4 text-destructive" />
+                              <ArrowUpRight className="w-4 h-4 text-destructive" />
                             )}
                             <div>
                               <p className="text-sm text-foreground">{event.label}</p>
@@ -306,7 +352,7 @@ const History = () => {
                               event.type === "topup" ? "text-primary" : "text-destructive"
                             }`}
                           >
-                            {event.type === "topup" ? `+${formatVND(event.amount)}` : "Từ chối"}
+                            {event.type === "topup" ? `+${formatVND(event.amount)}` : `-${formatVND(event.amount)}`}
                           </span>
                         </div>
                       ))}
