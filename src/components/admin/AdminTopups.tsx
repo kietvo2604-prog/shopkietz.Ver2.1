@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 
 type TopupRequest = {
   id: string;
