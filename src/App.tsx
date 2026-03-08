@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import TopUp from "./pages/TopUp";
 import History from "./pages/History";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import ClickSparkle from "./components/ClickSparkle";
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/nap-tien" element={<TopUp />} />
             <Route path="/lich-su" element={<History />} />
             <Route path="/dang-nhap" element={<Auth />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
