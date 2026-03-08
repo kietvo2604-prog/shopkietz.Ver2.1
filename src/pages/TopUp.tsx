@@ -3,7 +3,10 @@ import zalopayQR from "@/assets/zalopay-qr.png";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle, AlertTriangle, ArrowRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
 
 const banks = [
   { name: "BV Bank", number: "99ZP25275M36980652", holder: "ZALOPAY_VO ANH KIET" },
@@ -22,6 +25,8 @@ const cardTypes = [
 const denominations = [10000, 20000, 50000, 100000, 200000, 500000];
 
 const TopUp = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [tab, setTab] = useState<"card" | "atm">("card");
   const [selectedCard, setSelectedCard] = useState("viettel");
   const [selectedDenom, setSelectedDenom] = useState(100000);
@@ -29,6 +34,7 @@ const TopUp = () => {
   const [code, setCode] = useState("");
   const [copiedField, setCopiedField] = useState("");
   const [errors, setErrors] = useState<{ serial?: string; code?: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
@@ -59,9 +65,28 @@ const TopUp = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateCard()) return;
-    // TODO: submit topup request
+    if (!user) {
+      toast({ title: "Vui lòng đăng nhập", description: "Bạn cần đăng nhập để nạp thẻ.", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await supabase.from("topup_requests").insert({
+      user_id: user.id,
+      amount: selectedDenom,
+      method: `Thẻ cào ${currentCard.name}`,
+      note: `Seri: ${serial} | Mã: ${code} | Mệnh giá: ${selectedDenom}`,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Lỗi", description: "Không thể gửi yêu cầu. Vui lòng thử lại.", variant: "destructive" });
+    } else {
+      toast({ title: "✅ Đã gửi yêu cầu nạp thẻ", description: `Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang chờ Admin xử lý.` });
+      setSerial("");
+      setCode("");
+      setErrors({});
+    }
   };
 
   const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
@@ -204,10 +229,12 @@ const TopUp = () => {
             </div>
 
             {/* Submit */}
-            <button onClick={handleSubmit} className="w-full py-3.5 gradient-primary text-primary-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Nạp thẻ — Thực nhận {formatVND(selectedDenom * 0.8)}
-              <ArrowRight className="w-4 h-4" />
+            <button onClick={handleSubmit} disabled={submitting} className="w-full py-3.5 gradient-primary text-primary-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60">
+              {submitting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Đang gửi yêu cầu...</>
+              ) : (
+                <><CreditCard className="w-4 h-4" /> Nạp thẻ — Thực nhận {formatVND(selectedDenom * 0.8)} <ArrowRight className="w-4 h-4" /></>
+              )}
             </button>
           </div>
         )}
