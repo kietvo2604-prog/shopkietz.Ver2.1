@@ -229,10 +229,12 @@ const TopUp = () => {
             </div>
 
             {/* Submit */}
-            <button onClick={handleSubmit} className="w-full py-3.5 gradient-primary text-primary-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Nạp thẻ — Thực nhận {formatVND(selectedDenom * 0.8)}
-              <ArrowRight className="w-4 h-4" />
+            <button onClick={handleSubmit} disabled={submitting} className="w-full py-3.5 gradient-primary text-primary-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60">
+              {submitting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Đang gửi yêu cầu...</>
+              ) : (
+                <><CreditCard className="w-4 h-4" /> Nạp thẻ — Thực nhận {formatVND(selectedDenom * 0.8)} <ArrowRight className="w-4 h-4" /></>
+              )}
             </button>
           </div>
         )}
