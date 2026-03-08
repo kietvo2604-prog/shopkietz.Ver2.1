@@ -1,4 +1,4 @@
-import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet } from "lucide-react";
+import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet, Shield } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "./ThemeToggle";
