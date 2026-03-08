@@ -229,23 +229,30 @@ const TopUp = () => {
               </div>
 
               <div className="grid md:grid-cols-2 gap-3">
-                {eWallets.map((w) => (
+                {eWallets.map((w: any) => (
                   <div key={w.name} className="bg-muted border border-border rounded-lg p-4">
                     <p className="font-bold text-foreground mb-1">{w.name}</p>
+                    {w.hasQR && (
+                      <div className="my-3 flex justify-center">
+                        <img src={zalopayQR} alt="ZaloPay QR" className="w-48 h-48 rounded-lg border border-border object-contain bg-white" />
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground font-mono">{w.number}</span>
-                      <button
-                        onClick={() => handleCopy(w.number, w.name)}
-                        className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs"
-                      >
-                        {copiedField === w.name ? (
-                          <><CheckCircle className="w-3 h-3" /> Đã copy</>
-                        ) : (
-                          <><Copy className="w-3 h-3" /> Copy</>
-                        )}
-                      </button>
+                      <span className="text-sm text-foreground font-mono">{w.number || "Chưa cập nhật"}</span>
+                      {w.number && (
+                        <button
+                          onClick={() => handleCopy(w.number, w.name)}
+                          className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs"
+                        >
+                          {copiedField === w.name ? (
+                            <><CheckCircle className="w-3 h-3" /> Đã copy</>
+                          ) : (
+                            <><Copy className="w-3 h-3" /> Copy</>
+                          )}
+                        </button>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Chủ TK: {w.holder}</p>
+                    {w.holder && <p className="text-xs text-muted-foreground mt-1">Chủ TK: {w.holder}</p>}
                   </div>
                 ))}
               </div>
