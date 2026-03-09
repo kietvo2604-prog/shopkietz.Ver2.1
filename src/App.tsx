@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/lich-su" element={<History />} />
             <Route path="/dang-nhap" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/don-hang/:id" element={<OrderDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

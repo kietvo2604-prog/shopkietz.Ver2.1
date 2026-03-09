@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   ShoppingBag, Wallet, TrendingUp, Clock,
   ArrowDownLeft, ArrowUpRight, CheckCircle, XCircle,
-  Loader2, AlertCircle
+  Loader2, AlertCircle, FileText
 } from "lucide-react";
 
 type Tab = "orders" | "activity" | "balance";
