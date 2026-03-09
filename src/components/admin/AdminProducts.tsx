@@ -31,7 +31,7 @@ const AdminProducts = () => {
   useEffect(() => { fetchProducts(); }, []);
 
   const resetForm = () => {
-    setForm({ name: "", description: "", price: 0, stock: 0, category: "Blox Fruits", status: "active" });
+    setForm({ name: "", description: "", price: 0, stock: 0, category: "Blox Fruits", status: "active", account_info: "" });
     setEditing(null);
     setShowForm(false);
   };
