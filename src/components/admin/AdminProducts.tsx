@@ -19,7 +19,7 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", price: 0, stock: 0, category: "Blox Fruits", status: "active" });
+  const [form, setForm] = useState({ name: "", description: "", price: 0, stock: 0, category: "Blox Fruits", status: "active", account_info: "" });
 
   const fetchProducts = async () => {
     setLoading(true);
