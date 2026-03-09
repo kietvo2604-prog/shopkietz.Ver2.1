@@ -9,6 +9,7 @@ import TopUp from "./pages/TopUp";
 import History from "./pages/History";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import OrderDetail from "./pages/OrderDetail";
 import NotFound from "./pages/NotFound";
 import ClickSparkle from "./components/ClickSparkle";
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/lich-su" element={<History />} />
             <Route path="/dang-nhap" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/don-hang/:id" element={<OrderDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

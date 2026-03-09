@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   ShoppingBag, Wallet, TrendingUp, Clock,
   ArrowDownLeft, ArrowUpRight, CheckCircle, XCircle,
-  Loader2, AlertCircle
+  Loader2, AlertCircle, FileText
 } from "lucide-react";
 
 type Tab = "orders" | "activity" | "balance";
@@ -192,8 +192,8 @@ const History = () => {
                   </div>
                 ) : (
                   orders.map((o) => (
-                    <div key={o.id} className="bg-card border border-primary/20 rounded-xl p-4 neon-card flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 min-w-0">
+                    <div key={o.id} className="bg-card border border-primary/20 rounded-xl p-4 neon-card flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                           <ShoppingBag className="w-5 h-5 text-primary" />
                         </div>
@@ -205,6 +205,13 @@ const History = () => {
                           </div>
                         </div>
                       </div>
+                      <Link
+                        to={`/don-hang/${o.id}`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-lg text-xs font-semibold hover:bg-primary/20 transition-colors shrink-0"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        Chi tiết
+                      </Link>
                       <div className="text-right shrink-0">
                         <p className="font-bold text-destructive text-sm">-{formatVND(o.price)}</p>
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 text-primary">
