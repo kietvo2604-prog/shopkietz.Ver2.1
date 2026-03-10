@@ -31,6 +31,7 @@ const App = () => (
             <Route path="/dang-nhap" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/don-hang/:id" element={<OrderDetail />} />
+            <Route path="/san-pham/:id" element={<ProductDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
