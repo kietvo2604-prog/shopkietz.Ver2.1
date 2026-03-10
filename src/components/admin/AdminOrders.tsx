@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, ShoppingBag, Clock, Eye, X } from "lucide-react";
+import { Search, ShoppingBag, Clock, Eye, X, Save, Pencil } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type Order = {
   id: string;
@@ -17,17 +18,18 @@ type Order = {
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const AdminOrders = () => {
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [editingAccInfo, setEditingAccInfo] = useState(false);
+  const [accInfoDraft, setAccInfoDraft] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
     setOrders((data as any[]) || []);
     setLoading(false);
   };
@@ -44,6 +46,21 @@ const AdminOrders = () => {
     );
   });
 
+  const handleSaveAccInfo = async () => {
+    if (!selectedOrder) return;
+    setSaving(true);
+    const { error } = await supabase.from("orders").update({ account_info: accInfoDraft } as any).eq("id", selectedOrder.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Lỗi", description: "Không thể cập nhật.", variant: "destructive" });
+    } else {
+      toast({ title: "✅ Đã cập nhật thông tin tài khoản!" });
+      setSelectedOrder({ ...selectedOrder, account_info: accInfoDraft });
+      setEditingAccInfo(false);
+      fetchOrders();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -53,7 +70,7 @@ const AdminOrders = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm mã đơn, tên sản phẩm..."
+            placeholder="Tìm mã đơn VAK, tên sản phẩm..."
             className="bg-muted border border-border rounded-lg py-2.5 pl-10 pr-4 text-foreground text-sm focus:outline-none focus:border-primary focus:neon-border transition-all w-72"
           />
         </div>
@@ -95,7 +112,7 @@ const AdminOrders = () => {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => setSelectedOrder(o)}
+                        onClick={() => { setSelectedOrder(o); setEditingAccInfo(false); setAccInfoDraft(o.account_info || ""); }}
                         className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                         title="Xem chi tiết"
                       >
@@ -151,12 +168,45 @@ const AdminOrders = () => {
               </div>
             </div>
 
-            {selectedOrder.account_info && (
-              <div className="bg-muted border border-border rounded-lg p-4">
-                <p className="text-xs text-muted-foreground font-semibold mb-1">Thông tin tài khoản:</p>
-                <pre className="text-sm font-mono text-foreground whitespace-pre-wrap break-all">{selectedOrder.account_info}</pre>
+            {/* Account info - editable */}
+            <div className="bg-muted border border-border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground font-semibold">Thông tin tài khoản:</p>
+                {!editingAccInfo && (
+                  <button onClick={() => { setEditingAccInfo(true); setAccInfoDraft(selectedOrder.account_info || ""); }}
+                    className="flex items-center gap-1 text-xs text-primary hover:underline">
+                    <Pencil className="w-3 h-3" /> Sửa
+                  </button>
+                )}
               </div>
-            )}
+              {editingAccInfo ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={accInfoDraft}
+                    onChange={(e) => setAccInfoDraft(e.target.value)}
+                    rows={4}
+                    placeholder="VD: username:password"
+                    className="w-full bg-background border border-border rounded-lg py-2 px-3 text-sm font-mono text-foreground focus:outline-none focus:border-primary transition-all resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={handleSaveAccInfo} disabled={saving}
+                      className="flex items-center gap-1.5 px-3 py-1.5 gradient-primary text-primary-foreground rounded-lg text-xs font-semibold hover:opacity-90 disabled:opacity-50">
+                      <Save className="w-3 h-3" /> {saving ? "Đang lưu..." : "Lưu"}
+                    </button>
+                    <button onClick={() => setEditingAccInfo(false)}
+                      className="px-3 py-1.5 bg-background text-muted-foreground rounded-lg text-xs font-semibold hover:bg-border transition-colors">
+                      Huỷ
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                selectedOrder.account_info ? (
+                  <pre className="text-sm font-mono text-foreground whitespace-pre-wrap break-all">{selectedOrder.account_info}</pre>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">Chưa có thông tin. Bấm "Sửa" để thêm.</p>
+                )
+              )}
+            </div>
           </div>
         </div>
       )}

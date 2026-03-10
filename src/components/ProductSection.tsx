@@ -2,8 +2,10 @@ import { Swords } from "lucide-react";
 import ProductCard from "./ProductCard";
 
 interface Product {
+  id?: string;
   name: string;
   price: string;
+  numericPrice?: number;
   stock: number;
   description: string;
   category: string;
@@ -24,7 +26,7 @@ const ProductSection = ({ title, products }: ProductSectionProps) => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((product, i) => (
-          <ProductCard key={i} {...product} />
+          <ProductCard key={product.id || i} {...product} />
         ))}
       </div>
     </div>
