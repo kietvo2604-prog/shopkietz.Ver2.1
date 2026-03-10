@@ -141,7 +141,7 @@ const TopUp = () => {
             <Wallet className="w-4 h-4" />
             ATM / Ví Điện Tử
             <span className="gradient-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-              +100%
+              +10%
             </span>
           </button>
         </div>
