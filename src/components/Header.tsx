@@ -10,6 +10,7 @@ const Header = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const [searchQuery, setSearchQuery] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
