@@ -25,6 +25,7 @@ type Category = { id: string; name: string; slug: string };
 
 const Index = () => {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +47,13 @@ const Index = () => {
   const slugMap: Record<string, string> = {};
   categories.forEach(c => { slugMap[c.name] = c.slug; });
 
+  // Filter by search
+  const filtered = searchQuery.trim()
+    ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    : products;
+
   const grouped: Record<string, Product[]> = {};
-  products.forEach((p) => {
+  filtered.forEach((p) => {
     if (!grouped[p.category]) grouped[p.category] = [];
     grouped[p.category].push(p);
   });
@@ -63,14 +69,30 @@ const Index = () => {
         {/* Leaderboard */}
         <TopUpLeaderboard />
 
+        {/* Search */}
+        <div className="relative max-w-md">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="🔍 Tìm kiếm sản phẩm..."
+            className="w-full bg-muted border border-border rounded-lg py-2.5 pl-4 pr-10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-all text-sm"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">✕</button>
+          )}
+        </div>
+
         <CategoryTabs activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
         {loading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">Chưa có sản phẩm nào.</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">
+            {searchQuery ? `Không tìm thấy sản phẩm "${searchQuery}"` : "Chưa có sản phẩm nào."}
+          </div>
         ) : (
           Object.entries(grouped).map(([category, prods]) => {
             const catSlug = slugMap[category] || category.toLowerCase().replace(/\s+/g, "");
