@@ -137,17 +137,24 @@ const Header = () => {
         {/* Nav */}
         <nav className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
           {[
-            { name: "Trang chủ", href: "/" },
-            { name: "Sản phẩm", href: "/#products" },
-            { name: "Nạp tiền", href: "/nap-tien" },
-            { name: "Đơn hàng", href: "#" },
-            { name: "Lịch sử", href: "#", dropdown: true },
-          ].map((item: any, i: number) => (
-            item.dropdown ? (
+            { name: "Trang chủ", href: "/", match: "/" },
+            { name: "Sản phẩm", href: "/#products", match: "/#products" },
+            { name: "Nạp tiền", href: "/nap-tien", match: "/nap-tien" },
+            { name: "Lịch sử", href: "#", dropdown: true, match: "/lich-su" },
+          ].map((item: any) => {
+            const isActive = item.dropdown
+              ? currentPath.startsWith("/lich-su")
+              : item.match === "/" ? currentPath === "/" : currentPath.startsWith(item.match);
+
+            return item.dropdown ? (
               <div key={item.name} className="relative" ref={historyRef}>
                 <button
                   onClick={() => setHistoryOpen(!historyOpen)}
-                  className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                    isActive
+                      ? "gradient-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
                 >
                   {item.name}
                   <ChevronDown className={`w-3 h-3 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
@@ -171,15 +178,15 @@ const Header = () => {
                 key={item.name}
                 href={item.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                  i === 0
+                  isActive
                     ? "gradient-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
                 {item.name}
               </a>
-            )
-          ))}
+            );
+          })}
         </nav>
       </div>
     </header>
