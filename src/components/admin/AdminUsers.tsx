@@ -15,6 +15,8 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
 
   const fetchUsers = async () => {
     setLoading(true);
