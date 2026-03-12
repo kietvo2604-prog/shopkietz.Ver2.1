@@ -46,6 +46,7 @@ const Admin = () => {
     { id: "topups" as Tab, name: "Nạp tiền", icon: CreditCard },
     { id: "products" as Tab, name: "Sản phẩm", icon: Package },
     { id: "categories" as Tab, name: "Danh mục", icon: FolderOpen },
+    { id: "discounts" as Tab, name: "Mã giảm giá", icon: Tag },
   ];
 
   return (
