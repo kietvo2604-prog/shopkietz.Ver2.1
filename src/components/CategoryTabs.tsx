@@ -7,7 +7,7 @@ interface CategoryTabsProps {
   onCategoryChange: (id: string) => void;
 }
 
-type Category = { id: string; name: string; slug: string; sort_order: number };
+type Category = { id: string; name: string; slug: string; sort_order: number; image_url: string | null };
 
 const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -43,6 +43,9 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
                 : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"
             }`}
           >
+            {cat.image_url && (
+              <img src={cat.image_url} alt={cat.name} className="w-5 h-5 rounded object-cover" />
+            )}
             {cat.name}
           </button>
         );

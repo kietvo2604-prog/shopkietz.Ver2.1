@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ShoppingBag, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PurchaseEntry {
   product_name: string;
@@ -33,7 +34,7 @@ const RecentPurchases = () => {
   const [purchases, setPurchases] = useState<PurchaseEntry[]>([]);
 
   useEffect(() => {
-    supabase.rpc("get_recent_purchases", { limit_count: 8 }).then(({ data }) => {
+    supabase.rpc("get_recent_purchases", { limit_count: 20 }).then(({ data }) => {
       setPurchases((data as PurchaseEntry[]) || []);
     });
   }, []);
@@ -41,34 +42,29 @@ const RecentPurchases = () => {
   if (purchases.length === 0) return null;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 neon-card h-full">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="bg-card border border-border rounded-xl neon-card h-full flex flex-col">
+      <div className="flex items-center gap-2 p-4 pb-2">
         <ShoppingBag className="w-4 h-4 text-primary" />
-        <h2 className="font-display text-sm font-bold text-foreground">LỊCH SỬ MUA GẦN ĐÂY</h2>
+        <h2 className="font-display text-sm font-bold text-foreground">ĐƠN HÀNG GẦN ĐÂY</h2>
       </div>
-      <div className="space-y-1.5">
-        {purchases.map((p, i) => (
-          <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-            <div className="w-6 h-6 rounded-full bg-muted border border-border overflow-hidden shrink-0">
-              {p.avatar_url ? (
-                <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-                  {(p.display_name || "?")[0]}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{maskName(p.display_name)} <span className="text-muted-foreground">đã mua</span> {p.product_name}</p>
-              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                <span className="px-1 py-0.5 bg-muted rounded">{p.product_category}</span>
-                <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{timeAgo(p.created_at)}</span>
+      <ScrollArea className="flex-1 px-4 pb-4" style={{ maxHeight: "280px" }}>
+        <div className="space-y-1.5">
+          {purchases.map((p, i) => (
+            <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border border-border/50">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">
+                  <span className="font-bold">{maskName(p.display_name)}</span>{" "}
+                  <span className="text-muted-foreground">mua</span>{" "}
+                  <span className="font-semibold">{p.product_name}</span>{" "}
+                  <span className="text-muted-foreground">với giá</span>{" "}
+                  <span className="font-bold text-primary">{formatVND(p.price)}</span>
+                </p>
               </div>
+              <span className="text-[10px] font-medium text-primary-foreground bg-primary/80 px-1.5 py-0.5 rounded shrink-0">{timeAgo(p.created_at)}</span>
             </div>
-            <span className="text-xs font-bold text-primary font-mono shrink-0">{formatVND(p.price)}</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
