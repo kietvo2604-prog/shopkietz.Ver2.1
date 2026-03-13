@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Wallet, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TopupEntry {
   user_id: string;
@@ -8,6 +9,7 @@ interface TopupEntry {
   avatar_url: string | null;
   amount: number;
   created_at: string;
+  method: string;
 }
 
 const maskName = (name: string | null) => {
@@ -35,10 +37,10 @@ const RecentTopups = () => {
     const fetchTopups = async () => {
       const { data } = await supabase
         .from("topup_requests")
-        .select("user_id, amount, created_at")
+        .select("user_id, amount, created_at, method")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(20);
 
       if (!data || data.length === 0) return;
 
@@ -55,6 +57,7 @@ const RecentTopups = () => {
         user_id: t.user_id,
         amount: t.amount,
         created_at: t.created_at,
+        method: t.method || "Chuyển khoản",
         display_name: profileMap[t.user_id]?.display_name || "User",
         avatar_url: profileMap[t.user_id]?.avatar_url || null,
       })));
@@ -65,35 +68,31 @@ const RecentTopups = () => {
   if (topups.length === 0) return null;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 neon-card h-full">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="bg-card border border-border rounded-xl neon-card h-full flex flex-col">
+      <div className="flex items-center gap-2 p-4 pb-2">
         <Wallet className="w-4 h-4 text-accent" />
-        <h2 className="font-display text-sm font-bold text-foreground">LỊCH SỬ NẠP GẦN ĐÂY</h2>
+        <h2 className="font-display text-sm font-bold text-foreground">NẠP TIỀN GẦN ĐÂY</h2>
       </div>
-      <div className="space-y-1.5">
-        {topups.map((t, i) => (
-          <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-            <div className="w-6 h-6 rounded-full bg-muted border border-border overflow-hidden shrink-0">
-              {t.avatar_url ? (
-                <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-                  {(t.display_name || "?")[0]}
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">
-                {maskName(t.display_name)} <span className="text-muted-foreground">đã nạp</span>
-              </p>
-              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{timeAgo(t.created_at)}</span>
+      <ScrollArea className="flex-1 px-4 pb-4" style={{ maxHeight: "280px" }}>
+        <div className="space-y-1.5">
+          {topups.map((t, i) => (
+            <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border border-border/50">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-foreground truncate">
+                  <span className="font-bold">{maskName(t.display_name)}</span>{" "}
+                  <span className="text-muted-foreground">thực hiện nạp</span>{" "}
+                  <span className="font-bold text-accent">{formatVND(t.amount)}</span>{" "}
+                  <span className="text-muted-foreground">bằng</span>{" "}
+                  <span className="font-semibold text-primary">{t.method}</span>{" "}
+                  <span className="text-muted-foreground">thực nhận</span>{" "}
+                  <span className="font-bold text-accent">{formatVND(t.amount)}</span>
+                </p>
               </div>
+              <span className="text-[10px] font-medium text-primary-foreground bg-accent/80 px-1.5 py-0.5 rounded shrink-0">{timeAgo(t.created_at)}</span>
             </div>
-            <span className="text-xs font-bold text-accent font-mono shrink-0">+{formatVND(t.amount)}</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

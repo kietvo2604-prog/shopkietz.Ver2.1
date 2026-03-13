@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShoppingCart, Eye, Package, Loader2, Copy, Check } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -30,13 +30,14 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   const { toast } = useToast();
   const [buying, setBuying] = useState(false);
   const [showAccDialog, setShowAccDialog] = useState(false);
-  const [purchasedAccInfo, setPurchasedAccInfo] = useState("");
+  const [purchasedAccInfos, setPurchasedAccInfos] = useState<string[]>([]);
   const [purchasedOrderCode, setPurchasedOrderCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(purchasedAccInfo);
+    const text = purchasedAccInfos.join("\n");
+    await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -59,7 +60,12 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
 
     // Purchase one at a time for quantity
     const allAccInfos: string[] = [];
-    let lastOrderCode = "";
+    let orderCode = "";
+    
+    // Generate a single order code for the batch
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const batchOrderCode = "VAK" + Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+
     for (let i = 0; i < quantity; i++) {
       const { data, error } = await supabase.rpc("purchase_product", {
         p_user_id: user.id,
@@ -75,7 +81,6 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       const result = data as any;
       if (!result.success) {
         if (i > 0) {
-          // Some purchases succeeded
           toast({ title: `⚠️ Chỉ mua được ${i}/${quantity}`, description: result.error, variant: "destructive" });
           break;
         }
@@ -85,7 +90,12 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       }
 
       if (result.account_info) allAccInfos.push(result.account_info);
-      lastOrderCode = result.order_code;
+      
+      // Update all orders from this batch to use the same order code
+      if (result.order_id) {
+        await supabase.from("orders").update({ order_code: batchOrderCode } as any).eq("id", result.order_id);
+      }
+      orderCode = batchOrderCode;
     }
 
     // Update discount code usage
@@ -98,12 +108,11 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
     setBuying(false);
 
     if (allAccInfos.length > 0) {
-      setPurchasedAccInfo(allAccInfos.join("\n---\n"));
-      setPurchasedOrderCode(lastOrderCode);
+      setPurchasedAccInfos(allAccInfos);
+      setPurchasedOrderCode(orderCode);
       setShowAccDialog(true);
     } else {
-      toast({ title: "✅ Mua hàng thành công!", description: `Mã đơn: ${lastOrderCode}` });
-      window.location.href = "/lich-su?tab=orders";
+      toast({ title: "✅ Mua hàng thành công!", description: `Mã đơn: ${orderCode}` });
     }
   };
 
@@ -164,9 +173,8 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         buying={buying}
       />
 
-      <Dialog open={showAccDialog} onOpenChange={(open) => {
-        if (!open) { setShowAccDialog(false); window.location.href = "/lich-su?tab=orders"; }
-      }}>
+      {/* Success dialog - no auto redirect */}
+      <Dialog open={showAccDialog} onOpenChange={setShowAccDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-primary flex items-center gap-2">✅ Mua hàng thành công!</DialogTitle>
@@ -175,15 +183,22 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
           <div className="space-y-3">
             <div className="bg-muted border border-border rounded-lg p-4">
               <p className="text-xs text-muted-foreground mb-1 font-semibold">Sản phẩm:</p>
-              <p className="text-sm text-foreground font-medium">{name}</p>
+              <p className="text-sm text-foreground font-medium">{name} (x{purchasedAccInfos.length})</p>
             </div>
             <div className="bg-muted border border-border rounded-lg p-4">
               <p className="text-xs text-muted-foreground mb-1 font-semibold">Mã đơn:</p>
               <p className="text-sm text-primary font-mono font-bold">{purchasedOrderCode}</p>
             </div>
-            <div className="bg-muted border border-border rounded-lg p-4">
-              <p className="text-xs text-muted-foreground mb-1 font-semibold">Thông tin tài khoản:</p>
-              <pre className="text-sm text-foreground font-mono whitespace-pre-wrap break-all">{purchasedAccInfo}</pre>
+            <div className="bg-muted border border-border rounded-lg p-4 max-h-60 overflow-y-auto">
+              <p className="text-xs text-muted-foreground mb-2 font-semibold">Thông tin tài khoản:</p>
+              <div className="space-y-2">
+                {purchasedAccInfos.map((info, idx) => (
+                  <div key={idx} className="bg-background border border-border rounded-lg p-2">
+                    <p className="text-[10px] text-muted-foreground mb-0.5 font-semibold">Tài khoản {idx + 1}:</p>
+                    <pre className="text-sm text-foreground font-mono whitespace-pre-wrap break-all">{info}</pre>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter className="flex gap-2 sm:gap-2">
@@ -191,9 +206,13 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               {copied ? "Đã sao chép!" : "Sao chép"}
             </button>
+            <button onClick={() => { setShowAccDialog(false); window.location.reload(); }}
+              className="px-4 py-2 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+              Mua thêm
+            </button>
             <button onClick={() => { setShowAccDialog(false); window.location.href = "/lich-su?tab=orders"; }}
               className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold hover:bg-border transition-colors">
-              Đến lịch sử
+              Lịch sử giao dịch
             </button>
           </DialogFooter>
         </DialogContent>

@@ -92,7 +92,6 @@ const ProductDetail = () => {
     }
     setBuying(false);
     toast({ title: "✅ Mua hàng thành công!", description: `Mã đơn: ${orderCode}` });
-    window.location.href = "/lich-su?tab=orders";
   };
 
   if (loading) {
