@@ -7,8 +7,8 @@ import CategoryTabs from "@/components/CategoryTabs";
 import ProductSection from "@/components/ProductSection";
 import PolicySection from "@/components/PolicySection";
 import TopUpGuide from "@/components/TopUpGuide";
-import TopUpLeaderboard from "@/components/TopUpLeaderboard";
 import RecentPurchases from "@/components/RecentPurchases";
+import RecentTopups from "@/components/RecentTopups";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -74,8 +74,11 @@ const Index = () => {
       <main className="container mx-auto px-4 py-6 space-y-8">
         <AnnouncementBanner />
 
-        {/* Leaderboard */}
-        <TopUpLeaderboard />
+        {/* Recent activity */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <RecentPurchases />
+          <RecentTopups />
+        </div>
 
         {/* Search */}
         <div className="relative max-w-md">
@@ -124,8 +127,7 @@ const Index = () => {
           })
         )}
 
-        {/* Recent purchases */}
-        <RecentPurchases />
+        {/* Removed duplicate RecentPurchases - now shown above */}
 
         <div className="grid lg:grid-cols-2 gap-8">
           <PolicySection />
