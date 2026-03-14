@@ -34,6 +34,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   const [purchasedOrderCode, setPurchasedOrderCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [purchasedOrderId, setPurchasedOrderId] = useState("");
 
   const handleCopy = async () => {
     const text = purchasedAccInfos.join("\n");
