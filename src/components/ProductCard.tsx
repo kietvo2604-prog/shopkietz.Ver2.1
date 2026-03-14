@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShoppingCart, Eye, Package, Loader2, Copy, Check } from "lucide-react";
+import { ShoppingCart, Eye, Package, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
