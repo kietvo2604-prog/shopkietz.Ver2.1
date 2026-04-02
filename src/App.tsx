@@ -7,6 +7,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import TopUp from "./pages/TopUp";
 import History from "./pages/History";
+import TopUpHistory from "./pages/TopUpHistory";
+import PurchaseHistory from "./pages/PurchaseHistory";
+import BalanceHistory from "./pages/BalanceHistory";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import OrderDetail from "./pages/OrderDetail";
@@ -30,6 +33,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/nap-tien" element={<TopUp />} />
             <Route path="/lich-su" element={<History />} />
+            <Route path="/lich-su-nap" element={<TopUpHistory />} />
+            <Route path="/lich-su-mua" element={<PurchaseHistory />} />
+            <Route path="/bien-dong-so-du" element={<BalanceHistory />} />
             <Route path="/dang-nhap" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/don-hang/:id" element={<OrderDetail />} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import zalopayQR from "@/assets/zalopay-qr.png";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
@@ -6,7 +6,11 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
+import {
+  CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle,
+  AlertTriangle, ArrowRight, Loader2, Clock, XCircle, History
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 const banks = [
   { name: "BV Bank", number: "99ZP25275M36980652", holder: "ZALOPAY_VO ANH KIET" },
@@ -20,9 +24,21 @@ const cardTypes = [
   { id: "viettel", name: "Viettel", color: "text-red-400", serialLengths: [11, 14], codeLengths: [13, 15], serialHint: "11 hoặc 14 số", codeHint: "13 hoặc 15 số" },
   { id: "vinaphone", name: "Vinaphone", color: "text-blue-400", serialLengths: [14], codeLengths: [12, 14], serialHint: "14 số", codeHint: "12 hoặc 14 số" },
   { id: "mobifone", name: "Mobifone", color: "text-green-400", serialLengths: [15], codeLengths: [12], serialHint: "15 số", codeHint: "12 số" },
+  { id: "garena", name: "Garena", color: "text-orange-400", serialLengths: [9], codeLengths: [9], serialHint: "9 số", codeHint: "9 số" },
 ];
 
 const denominations = [10000, 20000, 50000, 100000, 200000, 500000];
+
+type TopupRequest = {
+  id: string;
+  amount: number;
+  method: string;
+  status: string;
+  note: string | null;
+  created_at: string;
+};
+
+const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const TopUp = () => {
   const { user } = useAuth();
@@ -36,8 +52,27 @@ const TopUp = () => {
   const [errors, setErrors] = useState<{ serial?: string; code?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [transferCode, setTransferCode] = useState<string | null>(null);
+  const [recentTopups, setRecentTopups] = useState<TopupRequest[]>([]);
+  const [loadingTopups, setLoadingTopups] = useState(false);
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
+
+  // Fetch transfer code and recent topups
+  useEffect(() => {
+    if (!user) return;
+    const fetchData = async () => {
+      setLoadingTopups(true);
+      const [profileRes, topupRes] = await Promise.all([
+        supabase.from("profiles").select("transfer_code").eq("user_id", user.id).single(),
+        supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
+      ]);
+      setTransferCode(profileRes.data?.transfer_code || null);
+      setRecentTopups(topupRes.data || []);
+      setLoadingTopups(false);
+    };
+    fetchData();
+  }, [user]);
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -74,11 +109,9 @@ const TopUp = () => {
     }
     setSubmitting(true);
 
-    // Map card type to telco code
-    const telcoMap: Record<string, string> = { viettel: "VIETTEL", vinaphone: "VINAPHONE", mobifone: "MOBIFONE" };
+    const telcoMap: Record<string, string> = { viettel: "VIETTEL", vinaphone: "VINAPHONE", mobifone: "MOBIFONE", garena: "GARENA" };
     const telco = telcoMap[selectedCard];
 
-    // 1. Create topup_request first
     const { data: insertData, error: insertError } = await supabase.from("topup_requests").insert({
       user_id: user.id,
       amount: selectedDenom,
@@ -92,32 +125,25 @@ const TopUp = () => {
       return;
     }
 
-    // 2. Send card to API for auto-processing
     try {
       const { data: apiResult, error: apiError } = await supabase.functions.invoke("charge-card", {
-        body: {
-          telco,
-          code,
-          serial,
-          amount: selectedDenom,
-          user_id: user.id,
-          topup_request_id: insertData.id,
-        },
+        body: { telco, code, serial, amount: selectedDenom, user_id: user.id, topup_request_id: insertData.id },
       });
 
       if (apiError) {
-        console.error("API error:", apiError);
         toast({ title: "⚠️ Đã gửi thẻ", description: "Thẻ đang được xử lý tự động. Vui lòng chờ kết quả." });
       } else {
-        toast({ title: "✅ Đã gửi thẻ cào", description: `Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang được xử lý tự động. Kết quả sẽ cập nhật trong vài giây.` });
+        toast({ title: "✅ Đã gửi thẻ cào", description: `Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang được xử lý tự động.` });
       }
-
-      setSuccessMessage(`✅ Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang được hệ thống xử lý tự động. Kết quả sẽ cập nhật trong lịch sử nạp tiền.`);
+      setSuccessMessage(`✅ Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang được hệ thống xử lý tự động.`);
     } catch (err) {
-      console.error("charge-card invoke error:", err);
       toast({ title: "⚠️ Đã gửi thẻ", description: "Thẻ đang được xử lý. Vui lòng kiểm tra lịch sử nạp tiền." });
       setSuccessMessage(`⏳ Thẻ ${currentCard.name} đã gửi. Vui lòng kiểm tra trạng thái trong lịch sử nạp tiền.`);
     }
+
+    // Refresh recent topups
+    const { data: newTopups } = await supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
+    setRecentTopups(newTopups || []);
 
     setSerial("");
     setCode("");
@@ -125,7 +151,30 @@ const TopUp = () => {
     setSubmitting(false);
   };
 
-  const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-accent/10 border-accent/30 text-accent">
+            <Clock className="w-3 h-3" /> Chờ xử lý
+          </span>
+        );
+      case "approved":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 text-primary">
+            <CheckCircle className="w-3 h-3" /> Đã duyệt
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-destructive/10 border-destructive/30 text-destructive">
+            <XCircle className="w-3 h-3" /> Từ chối
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,67 +193,38 @@ const TopUp = () => {
           </div>
         )}
 
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-primary neon-text text-center">
-          NẠP TIỀN VÀO TÀI KHOẢN
-        </h1>
-        <p className="text-center text-muted-foreground text-sm">
-          Chọn hình thức nạp tiền phù hợp — Tự động 24/7
-        </p>
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-primary neon-text text-center">NẠP TIỀN VÀO TÀI KHOẢN</h1>
+        <p className="text-center text-muted-foreground text-sm">Chọn hình thức nạp tiền phù hợp — Tự động 24/7</p>
 
         {/* Tabs */}
         <div className="flex gap-2 justify-center">
-          <button
-            onClick={() => setTab("card")}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all ${
-              tab === "card"
-                ? "gradient-primary text-primary-foreground neon-border"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"
-            }`}
-          >
-            <Smartphone className="w-4 h-4" />
-            Thẻ Cào
+          <button onClick={() => setTab("card")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all ${tab === "card" ? "gradient-primary text-primary-foreground neon-border" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"}`}>
+            <Smartphone className="w-4 h-4" /> Thẻ Cào
           </button>
-          <button
-            onClick={() => setTab("atm")}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all ${
-              tab === "atm"
-                ? "gradient-primary text-primary-foreground neon-border"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"
-            }`}
-          >
-            <Wallet className="w-4 h-4" />
-            ATM / Ví Điện Tử
-            <span className="gradient-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-              +10%
-            </span>
+          <button onClick={() => setTab("atm")}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all ${tab === "atm" ? "gradient-primary text-primary-foreground neon-border" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"}`}>
+            <Wallet className="w-4 h-4" /> ATM / Ví Điện Tử
+            <span className="gradient-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">+10%</span>
           </button>
         </div>
 
         {/* Card Tab */}
         {tab === "card" && (
-           <div className="bg-card border border-border rounded-xl p-6 neon-card animate-slide-up space-y-6">
+          <div className="bg-card border border-border rounded-xl p-6 neon-card animate-slide-up space-y-6">
             <div className="flex items-center gap-2 mb-2">
               <CreditCard className="w-6 h-6 text-neon-cyan" />
               <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">NẠP QUA THẺ CÀO</h2>
-              <span className="gradient-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                -20% chiết khấu
-              </span>
+              <span className="gradient-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">-20% chiết khấu</span>
             </div>
 
             {/* Card Type */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">Chọn loại thẻ</label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {cardTypes.map((ct) => (
-                  <button
-                    key={ct.id}
-                    onClick={() => { setSelectedCard(ct.id); setSerial(""); setCode(""); setErrors({}); }}
-                    className={`flex-1 py-3 rounded-lg font-semibold text-sm border transition-all ${
-                      selectedCard === ct.id
-                        ? "border-primary bg-primary/10 text-primary neon-border"
-                        : "border-border bg-muted text-muted-foreground hover:border-primary/50"
-                    }`}
-                  >
+                  <button key={ct.id} onClick={() => { setSelectedCard(ct.id); setSerial(""); setCode(""); setErrors({}); }}
+                    className={`py-3 rounded-lg font-semibold text-sm border transition-all ${selectedCard === ct.id ? "border-primary bg-primary/10 text-primary neon-border" : "border-border bg-muted text-muted-foreground hover:border-primary/50"}`}>
                     {ct.name}
                   </button>
                 ))}
@@ -216,15 +236,8 @@ const TopUp = () => {
               <label className="text-sm font-medium text-foreground mb-2 block">Mệnh giá</label>
               <div className="grid grid-cols-3 gap-2">
                 {denominations.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setSelectedDenom(d)}
-                    className={`py-2.5 rounded-lg text-sm font-semibold border transition-all ${
-                      selectedDenom === d
-                        ? "border-primary bg-primary/10 text-primary neon-border"
-                        : "border-border bg-muted text-muted-foreground hover:border-primary/50"
-                    }`}
-                  >
+                  <button key={d} onClick={() => setSelectedDenom(d)}
+                    className={`py-2.5 rounded-lg text-sm font-semibold border transition-all ${selectedDenom === d ? "border-primary bg-primary/10 text-primary neon-border" : "border-border bg-muted text-muted-foreground hover:border-primary/50"}`}>
                     {formatVND(d)}
                   </button>
                 ))}
@@ -236,27 +249,21 @@ const TopUp = () => {
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">Số Seri</label>
                 <p className="text-xs text-muted-foreground mb-2">{currentCard.name}: {currentCard.serialHint}</p>
-                <input
-                  type="text"
-                  value={serial}
+                <input type="text" value={serial}
                   onChange={(e) => { setSerial(e.target.value.replace(/\D/g, "")); setErrors((prev) => ({ ...prev, serial: undefined })); }}
                   placeholder={`Nhập số Seri (${currentCard.serialHint})...`}
                   maxLength={Math.max(...currentCard.serialLengths)}
-                  className={`w-full bg-muted border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all ${errors.serial ? "border-destructive" : "border-border"}`}
-                />
+                  className={`w-full bg-muted border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all ${errors.serial ? "border-destructive" : "border-border"}`} />
                 {errors.serial && <p className="text-xs text-destructive mt-1">{errors.serial}</p>}
               </div>
               <div>
                 <label className="text-sm font-medium text-foreground mb-1 block">Mã thẻ</label>
                 <p className="text-xs text-muted-foreground mb-2">{currentCard.name}: {currentCard.codeHint}</p>
-                <input
-                  type="text"
-                  value={code}
+                <input type="text" value={code}
                   onChange={(e) => { setCode(e.target.value.replace(/\D/g, "")); setErrors((prev) => ({ ...prev, code: undefined })); }}
                   placeholder={`Nhập mã thẻ (${currentCard.codeHint})...`}
                   maxLength={Math.max(...currentCard.codeLengths)}
-                  className={`w-full bg-muted border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all ${errors.code ? "border-destructive" : "border-border"}`}
-                />
+                  className={`w-full bg-muted border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all ${errors.code ? "border-destructive" : "border-border"}`} />
                 {errors.code && <p className="text-xs text-destructive mt-1">{errors.code}</p>}
               </div>
             </div>
@@ -264,9 +271,7 @@ const TopUp = () => {
             {/* Warning */}
             <div className="flex items-start gap-2 bg-destructive/10 border border-destructive/30 rounded-lg p-3">
               <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-              <p className="text-xs text-destructive">
-                Vui lòng nhập đúng mệnh giá thẻ cào. Nhập sai mệnh giá sẽ bị mất thẻ và không được hoàn tiền.
-              </p>
+              <p className="text-xs text-destructive">Vui lòng nhập đúng mệnh giá thẻ cào. Nhập sai mệnh giá sẽ bị mất thẻ và không được hoàn tiền.</p>
             </div>
 
             <div className="bg-muted/50 border border-border rounded-lg p-3 text-center text-sm">
@@ -275,7 +280,6 @@ const TopUp = () => {
               <span className="text-destructive text-xs ml-1">(-20%)</span>
             </div>
 
-            {/* Submit */}
             <button onClick={handleSubmit} disabled={submitting} className="w-full py-3.5 gradient-primary text-primary-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60">
               {submitting ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Đang gửi yêu cầu...</>
@@ -289,7 +293,6 @@ const TopUp = () => {
         {/* ATM Tab */}
         {tab === "atm" && (
           <div className="space-y-6 animate-slide-up">
-            {/* Bonus banner */}
             <div className="gradient-accent rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Gift className="w-8 h-8 text-accent-foreground" />
@@ -301,14 +304,12 @@ const TopUp = () => {
               <span className="font-display text-2xl font-bold text-accent-foreground">+10%</span>
             </div>
 
-            {/* Bank accounts */}
-            {/* E-wallets - moved up */}
+            {/* E-wallets */}
             <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4">
               <div className="flex items-center gap-2 justify-center">
                 <Smartphone className="w-6 h-6 text-neon-cyan" />
                 <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">VÍ ĐIỆN TỬ</h2>
               </div>
-
               <div className="flex flex-col items-center gap-3">
                 {eWallets.map((w: any) => (
                   <div key={w.name} className="bg-muted border border-border rounded-lg p-4 text-center">
@@ -321,15 +322,8 @@ const TopUp = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-foreground font-mono">{w.number || "Chưa cập nhật"}</span>
                       {w.number && (
-                        <button
-                          onClick={() => handleCopy(w.number, w.name)}
-                          className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs"
-                        >
-                          {copiedField === w.name ? (
-                            <><CheckCircle className="w-3 h-3" /> Đã copy</>
-                          ) : (
-                            <><Copy className="w-3 h-3" /> Copy</>
-                          )}
+                        <button onClick={() => handleCopy(w.number, w.name)} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs">
+                          {copiedField === w.name ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy</>}
                         </button>
                       )}
                     </div>
@@ -339,13 +333,12 @@ const TopUp = () => {
               </div>
             </div>
 
-            {/* Bank accounts - moved down */}
+            {/* Bank accounts */}
             <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4">
               <div className="flex items-center gap-2">
                 <Wallet className="w-6 h-6 text-neon-cyan" />
                 <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">CHUYỂN KHOẢN NGÂN HÀNG</h2>
               </div>
-
               <div className="space-y-3">
                 {banks.map((bank) => (
                   <div key={bank.name} className="bg-muted border border-border rounded-lg p-4">
@@ -355,20 +348,11 @@ const TopUp = () => {
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">STK: </span>
-                        <span className="text-foreground font-mono">{bank.number || "Chưa cập nhật"}</span>
+                        <span className="text-foreground font-mono">{bank.number}</span>
                       </div>
-                      {bank.number && (
-                        <button
-                          onClick={() => handleCopy(bank.number, bank.name)}
-                          className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs justify-end"
-                        >
-                          {copiedField === bank.name ? (
-                            <><CheckCircle className="w-3 h-3" /> Đã copy</>
-                          ) : (
-                            <><Copy className="w-3 h-3" /> Copy STK</>
-                          )}
-                        </button>
-                      )}
+                      <button onClick={() => handleCopy(bank.number, bank.name)} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs justify-end">
+                        {copiedField === bank.name ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy STK</>}
+                      </button>
                     </div>
                     {bank.holder && <p className="text-xs text-muted-foreground mt-1">Chủ TK: {bank.holder}</p>}
                   </div>
@@ -376,30 +360,68 @@ const TopUp = () => {
               </div>
             </div>
 
-            {/* Transfer note */}
+            {/* Transfer note with unique code */}
             <div className="bg-card border border-border rounded-xl p-6 neon-card">
               <h3 className="font-bold text-foreground mb-3">📌 Nội dung chuyển khoản</h3>
-              <div className="bg-muted border border-primary/30 rounded-lg p-4 flex items-center justify-between">
-                <code className="text-primary font-mono text-sm font-bold">NAP [TÊN ĐĂNG NHẬP]</code>
-                <button
-                  onClick={() => handleCopy("NAP [TÊN ĐĂNG NHẬP]", "content")}
-                  className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs"
-                >
-                  {copiedField === "content" ? (
-                    <><CheckCircle className="w-3 h-3" /> Đã copy</>
-                  ) : (
-                    <><Copy className="w-3 h-3" /> Copy</>
-                  )}
-                </button>
-              </div>
+              {transferCode ? (
+                <div className="bg-muted border border-primary/30 rounded-lg p-4 flex items-center justify-between">
+                  <code className="text-primary font-mono text-lg font-bold">{transferCode}</code>
+                  <button onClick={() => handleCopy(transferCode, "content")} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs">
+                    {copiedField === "content" ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy</>}
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-muted border border-border rounded-lg p-4 text-center">
+                  <p className="text-muted-foreground text-sm">Vui lòng đăng nhập để xem mã nội dung chuyển khoản của bạn.</p>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-3">
-                ⚠️ Vui lòng ghi đúng nội dung chuyển khoản để hệ thống tự động cộng tiền. Sai nội dung sẽ phải liên hệ Admin để xử lý thủ công.
+                ⚠️ Mỗi tài khoản có một mã riêng. Vui lòng ghi đúng nội dung chuyển khoản để hệ thống tự động cộng tiền.
               </p>
             </div>
           </div>
         )}
-      </main>
 
+        {/* Recent Top-up History */}
+        {user && (
+          <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                <h3 className="font-bold text-foreground">Lịch sử nạp gần đây</h3>
+              </div>
+              <Link to="/lich-su-nap" className="text-primary text-xs font-semibold hover:underline">Xem tất cả →</Link>
+            </div>
+            {loadingTopups ? (
+              <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+            ) : recentTopups.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Chưa có lịch sử nạp tiền.</p>
+            ) : (
+              <div className="space-y-2">
+                {recentTopups.map((t) => (
+                  <div key={t.id} className={`flex items-center justify-between py-3 px-3 rounded-lg border ${t.status === "approved" ? "border-primary/20" : t.status === "rejected" ? "border-destructive/20" : "border-border"} bg-muted/30`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${t.status === "approved" ? "bg-primary/10" : t.status === "rejected" ? "bg-destructive/10" : "bg-accent/10"}`}>
+                        {t.status === "approved" ? <CheckCircle className="w-4 h-4 text-primary" /> : t.status === "rejected" ? <XCircle className="w-4 h-4 text-destructive" /> : <Clock className="w-4 h-4 text-accent" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{t.method}</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(t.created_at).toLocaleString("vi-VN")}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className={`font-bold text-sm ${t.status === "approved" ? "text-primary" : t.status === "rejected" ? "text-destructive line-through" : "text-accent"}`}>
+                        {t.status === "rejected" ? "" : "+"}{formatVND(t.amount)}
+                      </p>
+                      {statusBadge(t.status)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
       <Footer />
     </div>
   );

@@ -234,6 +234,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          transfer_code: string | null
           updated_at: string
           user_id: string
         }
@@ -243,6 +244,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          transfer_code?: string | null
           updated_at?: string
           user_id: string
         }
@@ -252,6 +254,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          transfer_code?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -322,6 +325,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_transfer_code: { Args: never; Returns: string }
       get_recent_purchases: {
         Args: { limit_count?: number }
         Returns: {
