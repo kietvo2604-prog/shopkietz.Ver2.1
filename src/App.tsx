@@ -17,7 +17,9 @@ import ProductDetail from "./pages/ProductDetail";
 import FAQ from "./pages/FAQ";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import CardRegulations from "./pages/CardRegulations";
 import ClickSparkle from "./components/ClickSparkle";
+import TopupNotifier from "./components/TopupNotifier";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <ClickSparkle />
+        <TopupNotifier />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -42,6 +45,7 @@ const App = () => (
             <Route path="/san-pham/:id" element={<ProductDetail />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/trang-ca-nhan" element={<Profile />} />
+            <Route path="/quy-dinh-nap-the" element={<CardRegulations />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
