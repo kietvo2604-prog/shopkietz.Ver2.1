@@ -1,9 +1,44 @@
-import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet, Shield } from "lucide-react";
+import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet, Shield, Phone, Mail, CreditCard, History, FileText, HelpCircle, Home, Package } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 import AnimatedLogo from "./AnimatedLogo";
+
+type NavItem = {
+  name: string;
+  href: string;
+  match: string;
+  icon?: React.ReactNode;
+  children?: { name: string; href: string; icon?: React.ReactNode }[];
+};
+
+const navItems: NavItem[] = [
+  { name: "Trang chủ", href: "/", match: "/", icon: <Home className="w-4 h-4" /> },
+  {
+    name: "Sản phẩm", href: "/#products", match: "/#products", icon: <Package className="w-4 h-4" />,
+    children: [
+      { name: "Tất cả sản phẩm", href: "/", icon: <Package className="w-4 h-4" /> },
+      { name: "Đơn hàng của tôi", href: "/lich-su-mua", icon: <ShoppingCart className="w-4 h-4" /> },
+    ],
+  },
+  {
+    name: "Nạp tiền", href: "/nap-tien", match: "/nap-tien", icon: <CreditCard className="w-4 h-4" />,
+    children: [
+      { name: "Nạp thẻ cào / ATM", href: "/nap-tien", icon: <CreditCard className="w-4 h-4" /> },
+      { name: "Quy định nạp thẻ", href: "/quy-dinh-nap-the", icon: <FileText className="w-4 h-4" /> },
+    ],
+  },
+  {
+    name: "Lịch sử", href: "/lich-su", match: "/lich-su", icon: <History className="w-4 h-4" />,
+    children: [
+      { name: "Lịch sử nạp tiền", href: "/lich-su-nap", icon: <Wallet className="w-4 h-4" /> },
+      { name: "Lịch sử mua hàng", href: "/lich-su-mua", icon: <ShoppingCart className="w-4 h-4" /> },
+      { name: "Biến động số dư", href: "/bien-dong-so-du", icon: <FileText className="w-4 h-4" /> },
+    ],
+  },
+  { name: "FAQ", href: "/faq", match: "/faq", icon: <HelpCircle className="w-4 h-4" /> },
+];
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -11,12 +46,12 @@ const Header = () => {
   const navigate = useNavigate();
   const currentPath = location.pathname;
   const [searchQuery, setSearchQuery] = useState("");
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
-  const historyRef = useRef<HTMLDivElement>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!user) { setIsAdmin(false); setBalance(null); return; }
@@ -32,11 +67,11 @@ const Header = () => {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (historyRef.current && !historyRef.current.contains(e.target as Node)) {
-        setHistoryOpen(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
+      }
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setOpenDropdown(null);
       }
     };
     document.addEventListener("mousedown", handleClick);
@@ -54,6 +89,21 @@ const Header = () => {
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
+      {/* Contact info bar */}
+      <div className="border-b border-border/50 bg-muted/30">
+        <div className="container mx-auto px-4 py-1.5 flex items-center justify-between">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <a href="https://discord.gg/shopkietz" target="_blank" rel="noopener" className="flex items-center gap-1 hover:text-primary transition-colors">
+              <Phone className="w-3 h-3" /> Discord: dsc.gg/shopkietz
+            </a>
+            <span className="hidden sm:flex items-center gap-1">
+              <Mail className="w-3 h-3" /> support@shopkietz.com
+            </span>
+          </div>
+          <ThemeToggle />
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
@@ -80,8 +130,6 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <ThemeToggle />
-
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -97,33 +145,43 @@ const Header = () => {
                   <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50 animate-fade-in">
+                  <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[220px] z-50 animate-fade-in">
                     <div className="px-4 py-2.5 border-b border-border">
                       <p className="text-sm font-medium text-foreground">{displayName}</p>
                       <p className="text-xs text-muted-foreground">{user.email}</p>
                       {balance !== null && (
-                        <p className="text-xs font-bold text-primary mt-1">
-                          💰 Số dư: {balance.toLocaleString("vi-VN")}đ
-                        </p>
+                        <div className="mt-2 bg-primary/10 border border-primary/20 rounded-md px-3 py-1.5">
+                          <p className="text-xs font-bold text-primary">
+                            💰 Số dư: {balance.toLocaleString("vi-VN")}đ
+                          </p>
+                        </div>
                       )}
                     </div>
                     <a href="/trang-ca-nhan" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                       <User className="w-4 h-4" /> Trang cá nhân
                     </a>
+                    <a href="/lich-su-mua" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                      <ShoppingCart className="w-4 h-4" /> Đơn hàng của tôi
+                    </a>
                     <a href="/lich-su" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                       <Wallet className="w-4 h-4" /> Lịch sử giao dịch
+                    </a>
+                    <a href="/nap-tien" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                      <CreditCard className="w-4 h-4" /> Nạp tiền
                     </a>
                     {isAdmin && (
                       <a href="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-neon-orange hover:bg-muted transition-colors">
                         <Shield className="w-4 h-4" /> Admin Dashboard
                       </a>
                     )}
-                    <button
-                      onClick={() => { signOut(); setUserMenuOpen(false); }}
-                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" /> Đăng xuất
-                    </button>
+                    <div className="border-t border-border mt-1">
+                      <button
+                        onClick={() => { signOut(); setUserMenuOpen(false); }}
+                        className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" /> Đăng xuất
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -139,29 +197,53 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
-          {[
-            { name: "Trang chủ", href: "/", match: "/" },
-            { name: "Sản phẩm", href: "/#products", match: "/#products" },
-            { name: "Nạp tiền", href: "/nap-tien", match: "/nap-tien" },
-            { name: "Lịch sử", href: "/lich-su", match: "/lich-su" },
-            { name: "FAQ", href: "/faq", match: "/faq" },
-          ].map((item) => {
-            const isActive = item.match === "/" ? currentPath === "/" : currentPath.startsWith(item.match);
+        {/* Nav with dropdowns */}
+        <nav ref={navRef} className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
+          {navItems.map((item) => {
+            const isActive = item.match === "/" ? currentPath === "/" : currentPath.startsWith(item.match.replace("/#", "/"));
+            const hasChildren = item.children && item.children.length > 0;
+            const isOpen = openDropdown === item.name;
 
             return (
-              <a
-                key={item.name}
-                href={item.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-                  isActive
-                    ? "gradient-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                {item.name}
-              </a>
+              <div key={item.name} className="relative">
+                <button
+                  onClick={() => {
+                    if (hasChildren) {
+                      setOpenDropdown(isOpen ? null : item.name);
+                    } else {
+                      setOpenDropdown(null);
+                      window.location.href = item.href;
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                    isActive
+                      ? "gradient-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {item.icon}
+                  {item.name}
+                  {hasChildren && (
+                    <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  )}
+                </button>
+
+                {hasChildren && isOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50 animate-fade-in">
+                    {item.children!.map((child) => (
+                      <a
+                        key={child.name}
+                        href={child.href}
+                        onClick={() => setOpenDropdown(null)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                      >
+                        {child.icon}
+                        {child.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
