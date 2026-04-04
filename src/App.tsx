@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import CardRegulations from "./pages/CardRegulations";
 import WarrantyPolicy from "./pages/WarrantyPolicy";
 import CTVDashboard from "./pages/CTVDashboard";
+import ResetPassword from "./pages/ResetPassword";
 import ClickSparkle from "./components/ClickSparkle";
 import TopupNotifier from "./components/TopupNotifier";
 
