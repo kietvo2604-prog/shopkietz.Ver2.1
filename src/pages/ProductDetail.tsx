@@ -218,7 +218,7 @@ const ProductDetail = () => {
                 {product.description && (
                   <div className="bg-muted border border-border rounded-xl p-4">
                     <p className="text-xs font-semibold text-muted-foreground mb-1">Mô tả:</p>
-                    <p className="text-sm text-foreground">{product.description}</p>
+                    <DescriptionWithImages text={product.description} />
                   </div>
                 )}
 
