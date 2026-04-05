@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, Trash2, Package, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import ImagePasteUpload from "@/components/ImagePasteUpload";
 
 type Product = {
   id: string;
@@ -36,7 +37,7 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", price: 0, category: "Blox Fruits", status: "active" });
+  const [form, setForm] = useState({ name: "", description: "", price: 0, category: "Blox Fruits", status: "active", image_url: "" });
   const [accountLines, setAccountLines] = useState("");
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [productAccounts, setProductAccounts] = useState<ProductAccount[]>([]);
@@ -86,7 +87,7 @@ const AdminProducts = () => {
   };
 
   const resetForm = () => {
-    setForm({ name: "", description: "", price: 0, category: categories[0]?.name || "Blox Fruits", status: "active" });
+    setForm({ name: "", description: "", price: 0, category: categories[0]?.name || "Blox Fruits", status: "active", image_url: "" });
     setAccountLines("");
     setEditing(null);
     setShowForm(false);
@@ -97,7 +98,7 @@ const AdminProducts = () => {
     if (editing) {
       await supabase.from("products").update({
         name: form.name, description: form.description, price: form.price,
-        category: form.category, status: form.status,
+        category: form.category, status: form.status, image_url: form.image_url || null,
       }).eq("id", editing.id);
 
       if (accountLines.trim()) {
@@ -115,7 +116,7 @@ const AdminProducts = () => {
     } else {
       const { data: newProduct } = await supabase.from("products").insert({
         name: form.name, description: form.description, price: form.price,
-        category: form.category, status: form.status, stock: 0,
+        category: form.category, status: form.status, stock: 0, image_url: form.image_url || null,
       }).select().single();
 
       if (newProduct && accountLines.trim()) {
@@ -133,7 +134,7 @@ const AdminProducts = () => {
   };
 
   const handleEdit = (p: Product) => {
-    setForm({ name: p.name, description: p.description || "", price: p.price, category: p.category, status: p.status });
+    setForm({ name: p.name, description: p.description || "", price: p.price, category: p.category, status: p.status, image_url: (p as any).image_url || "" });
     setAccountLines("");
     setEditing(p);
     setShowForm(true);
@@ -187,6 +188,12 @@ const AdminProducts = () => {
               </select>
             </div>
           </div>
+          <ImagePasteUpload
+            value={form.image_url}
+            onChange={(url) => setForm({ ...form, image_url: url })}
+            label="Ảnh sản phẩm"
+            placeholder="Dán ảnh hoặc nhập link..."
+          />
           <div>
             <label className="text-sm font-medium text-foreground mb-1 block">Mô tả</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}

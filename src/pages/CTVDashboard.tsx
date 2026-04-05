@@ -6,6 +6,7 @@ import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Plus, Package, Loader2, AlertCircle, ChevronDown, ChevronUp, Trash2, Eye, EyeOff, Search, Upload } from "lucide-react";
+import ImagePasteUpload from "@/components/ImagePasteUpload";
 import { useToast } from "@/hooks/use-toast";
 
 type CTVAssignment = {
@@ -188,6 +189,14 @@ const CTVDashboard = () => {
     fetchProducts();
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm("Xoá sản phẩm này?")) return;
+    await supabase.from("product_accounts").delete().eq("product_id", productId);
+    await supabase.from("products").delete().eq("id", productId);
+    toast({ title: "✅ Đã xoá sản phẩm!" });
+    fetchProducts();
+  };
+
   const filteredProducts = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchCat = selectedCategory === "all" || p.category === selectedCategory;
@@ -264,10 +273,12 @@ const CTVDashboard = () => {
                   className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm" />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">Link ảnh sản phẩm</label>
-                <input value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm" />
+                <ImagePasteUpload
+                  value={form.image_url}
+                  onChange={(url) => setForm({ ...form, image_url: url })}
+                  label="Ảnh sản phẩm"
+                  placeholder="Dán ảnh hoặc nhập link..."
+                />
               </div>
             </div>
             <div>
@@ -321,11 +332,12 @@ const CTVDashboard = () => {
                   <th className="text-right px-4 py-3 font-semibold text-foreground">Giá</th>
                   <th className="text-center px-4 py-3 font-semibold text-foreground">Kho</th>
                   <th className="text-center px-4 py-3 font-semibold text-foreground">Trạng thái</th>
+                  <th className="text-right px-4 py-3 font-semibold text-foreground">Hành động</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">
                     {products.length === 0 ? "Chưa có sản phẩm. Bấm 'Thêm sản phẩm' để bắt đầu." : "Không tìm thấy sản phẩm."}
                   </td></tr>
                 ) : filteredProducts.map(product => (
@@ -338,6 +350,7 @@ const CTVDashboard = () => {
                     showPasswords={showPasswords}
                     onTogglePassword={(id) => setShowPasswords(p => ({ ...p, [id]: !p[id] }))}
                     onDeleteAccount={(accId) => handleDeleteAccount(accId, product.id)}
+                    onDeleteProduct={() => handleDeleteProduct(product.id)}
                     maskPassword={maskPassword}
                     addAccountsProductId={addAccountsProductId}
                     onShowAddAccounts={() => { setAddAccountsProductId(product.id); setNewAccountLines(""); }}
@@ -366,6 +379,7 @@ type ProductRowProps = {
   showPasswords: Record<string, boolean>;
   onTogglePassword: (id: string) => void;
   onDeleteAccount: (id: string) => void;
+  onDeleteProduct: () => void;
   maskPassword: (info: string) => string;
   addAccountsProductId: string | null;
   onShowAddAccounts: () => void;
@@ -378,7 +392,7 @@ type ProductRowProps = {
 
 const ProductRow = ({
   product, isExpanded, onToggle, accounts, showPasswords,
-  onTogglePassword, onDeleteAccount, maskPassword,
+  onTogglePassword, onDeleteAccount, onDeleteProduct, maskPassword,
   addAccountsProductId, onShowAddAccounts, newAccountLines,
   onNewAccountLinesChange, onAddAccounts, addingAccounts, onCancelAddAccounts
 }: ProductRowProps) => {
@@ -409,11 +423,17 @@ const ProductRow = ({
             {product.status === "active" ? "Đang bán" : "Ẩn"}
           </span>
         </td>
+        <td className="px-4 py-3 text-right">
+          <button onClick={(e) => { e.stopPropagation(); onDeleteProduct(); }}
+            className="p-2 rounded-lg hover:bg-muted transition-colors text-destructive" title="Xoá sản phẩm">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </td>
       </tr>
 
       {isExpanded && (
         <tr>
-          <td colSpan={6} className="px-4 py-4 bg-muted/20">
+          <td colSpan={7} className="px-4 py-4 bg-muted/20">
             <div className="space-y-4">
               {/* Actions */}
               <div className="flex items-center gap-2">

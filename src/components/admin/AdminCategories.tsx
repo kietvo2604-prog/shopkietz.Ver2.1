@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, GripVertical, Image } from "lucide-react";
+import { Plus, Trash2, Pencil, GripVertical } from "lucide-react";
+import ImagePasteUpload from "@/components/ImagePasteUpload";
 
 type Category = {
   id: string;
@@ -100,21 +101,13 @@ const AdminCategories = () => {
         </div>
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="text-sm font-medium text-foreground mb-1 block flex items-center gap-1.5">
-              <Image className="w-4 h-4 text-muted-foreground" /> Link ảnh danh mục
-            </label>
-            <input
+            <ImagePasteUpload
               value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="https://example.com/image.png"
-              className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm"
+              onChange={setNewImageUrl}
+              label="Ảnh danh mục"
+              placeholder="Dán ảnh hoặc nhập link..."
             />
           </div>
-          {newImageUrl && (
-            <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-muted shrink-0">
-              <img src={newImageUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
-            </div>
-          )}
           <button onClick={handleAdd} className="flex items-center gap-2 px-4 py-2.5 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
             <Plus className="w-4 h-4" /> Thêm
           </button>
