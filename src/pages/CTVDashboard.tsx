@@ -337,7 +337,7 @@ const CTVDashboard = () => {
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">
                     {products.length === 0 ? "Chưa có sản phẩm. Bấm 'Thêm sản phẩm' để bắt đầu." : "Không tìm thấy sản phẩm."}
                   </td></tr>
                 ) : filteredProducts.map(product => (
