@@ -311,7 +311,8 @@ const AdminProducts = () => {
                     </tr>
                   )}
                 </>
-              ))}
+              ));
+              })()}
             </tbody>
           </table>
         </div>
