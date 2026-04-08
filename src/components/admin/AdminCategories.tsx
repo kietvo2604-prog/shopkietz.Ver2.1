@@ -21,6 +21,10 @@ const AdminCategories = () => {
   const [editName, setEditName] = useState("");
   const [editSlug, setEditSlug] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryProducts, setCategoryProducts] = useState<Record<string, any[]>>({});
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   const fetchCategories = async () => {
     setLoading(true);

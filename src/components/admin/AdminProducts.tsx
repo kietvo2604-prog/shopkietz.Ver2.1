@@ -43,6 +43,7 @@ const AdminProducts = () => {
   const [productAccounts, setProductAccounts] = useState<ProductAccount[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = async () => {
     setLoading(true);

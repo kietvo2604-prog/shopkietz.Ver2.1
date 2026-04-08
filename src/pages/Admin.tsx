@@ -20,7 +20,14 @@ const Admin = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>(() => {
+    const saved = localStorage.getItem("admin_tab");
+    return (saved && ["overview","users","topups","products","orders","categories","discounts","ctv","shop_settings"].includes(saved)) ? saved as Tab : "overview";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("admin_tab", tab);
+  }, [tab]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
