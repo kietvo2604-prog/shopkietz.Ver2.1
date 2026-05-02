@@ -61,27 +61,39 @@ const Admin = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <aside className={`bg-card border-r border-border flex flex-col transition-all duration-300 ${sidebarOpen ? "w-64" : "w-16"}`}>
-        <div className="p-4 border-b border-border flex items-center gap-2">
-          <Gamepad2 className="w-7 h-7 text-primary neon-text shrink-0" />
-          {sidebarOpen && <span className="font-display text-sm font-bold text-primary neon-text tracking-wider">ADMIN</span>}
+    <div className="min-h-screen bg-background flex flex-col md:flex-row">
+      {/* Mobile top bar */}
+      <div className="md:hidden bg-card border-b border-border p-3 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-2">
+          <Gamepad2 className="w-6 h-6 text-primary" />
+          <span className="font-display text-sm font-bold text-primary">ADMIN</span>
+        </div>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded bg-muted border border-border">
+          <LayoutDashboard className="w-4 h-4" />
+        </button>
+      </div>
+
+      <aside className={`bg-card border-r border-border md:flex md:flex-col transition-all duration-300 ${sidebarOpen ? "flex flex-col w-full md:w-64" : "hidden md:flex md:w-16"}`}>
+        <div className="hidden md:flex p-4 border-b border-border items-center gap-2">
+          <Gamepad2 className="w-7 h-7 text-primary shrink-0" />
+          {sidebarOpen && <span className="font-display text-sm font-bold text-primary tracking-wider">ADMIN</span>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="ml-auto p-1 rounded hover:bg-muted transition-colors">
             <ChevronLeft className={`w-4 h-4 text-muted-foreground transition-transform ${!sidebarOpen ? "rotate-180" : ""}`} />
           </button>
         </div>
-        <nav className="flex-1 p-2 space-y-1">
+        <nav className="flex-1 p-2 space-y-1 overflow-x-auto md:overflow-y-auto flex md:block gap-1">
           {tabs.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            <button key={t.id} onClick={() => { setTab(t.id); if (window.innerWidth < 768) setSidebarOpen(false); }}
+              className={`shrink-0 md:w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                 tab === t.id ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}>
               <t.icon className="w-5 h-5 shrink-0" />
-              {sidebarOpen && <span>{t.name}</span>}
+              <span className={sidebarOpen ? "inline" : "hidden md:hidden"}>{t.name}</span>
+              <span className="md:hidden">{t.name}</span>
             </button>
           ))}
         </nav>
-        <div className="p-2 border-t border-border space-y-1">
+        <div className="p-2 border-t border-border space-y-1 hidden md:block">
           <a href="/" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold gradient-primary text-primary-foreground hover:opacity-90 transition-all">
             <ChevronLeft className="w-5 h-5 shrink-0" />{sidebarOpen && <span>Về trang chủ Shop</span>}
           </a>
@@ -90,7 +102,7 @@ const Admin = () => {
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-3 sm:p-6 overflow-auto">
         <div className="max-w-6xl mx-auto">
           {tab === "overview" && <AdminOverview />}
           {tab === "orders" && <AdminOrders />}
