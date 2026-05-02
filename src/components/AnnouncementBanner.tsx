@@ -51,11 +51,7 @@ const AnnouncementBanner = () => {
 
       <div className="mt-5 pt-5 border-t border-border">
         <p className="text-lg font-bold text-foreground">{title}</p>
-        <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-          {descLines.map((line, i) => (
-            <p key={i}>{line}</p>
-          ))}
-        </div>
+        <div className="mt-3 space-y-1 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: descHtml.replace(/\n/g, "<br/>") }} />
       </div>
     </div>
   );
