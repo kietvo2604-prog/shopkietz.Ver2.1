@@ -48,8 +48,8 @@ const AdminProducts = () => {
   const fetchData = async () => {
     setLoading(true);
     const [prodRes, catRes] = await Promise.all([
-      supabase.from("products").select("*").order("created_at", { ascending: false }),
-      supabase.from("categories").select("*").order("sort_order"),
+      supabase.from("products").select("*").order("name", { ascending: true }),
+      supabase.from("categories").select("*").order("name", { ascending: true }),
     ]);
     setProducts(prodRes.data || []);
     setCategories((catRes.data as Category[]) || []);
