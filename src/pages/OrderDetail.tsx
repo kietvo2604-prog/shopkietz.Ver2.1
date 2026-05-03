@@ -6,6 +6,17 @@ import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ShoppingBag, ArrowLeft, Copy, Check, Loader2, AlertCircle, Clock, User, Lock } from "lucide-react";
+import accIcon1 from "@/assets/account-icon-1.png";
+import accIcon2 from "@/assets/account-icon-2.png";
+import accIcon3 from "@/assets/account-icon-3.png";
+
+const ACC_ICONS = [accIcon1, accIcon2, accIcon3];
+const pickIcon = (seed: string, i: number) => {
+  let h = 0;
+  const s = `${seed}-${i}`;
+  for (let k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) >>> 0;
+  return ACC_ICONS[h % ACC_ICONS.length];
+};
 
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
@@ -156,6 +167,7 @@ const OrderDetail = () => {
                     <div key={i} className="bg-background border border-border rounded-lg p-3">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <img src={pickIcon(order.id, i)} alt="" className="w-7 h-7 object-contain shrink-0" />
                           <span className="text-xs font-bold text-primary shrink-0 w-5">{i + 1}.</span>
                           <span className="text-sm font-mono text-foreground truncate">{line}</span>
                         </div>
