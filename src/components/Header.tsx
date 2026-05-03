@@ -161,7 +161,7 @@ const Header = () => {
         </div>
 
         {/* Nav with dropdowns */}
-        <nav className={`mt-3 ${mobileMenuOpen ? "flex flex-col" : "hidden"} md:flex md:flex-row md:items-center gap-2 md:overflow-x-auto pb-1`}>
+        <nav className={`mt-3 ${mobileMenuOpen ? "flex flex-col" : "hidden"} md:flex md:flex-row md:items-center gap-2 pb-1 relative z-40`}>
           {user && (
             <button
               onClick={() => navigate("/nap-tien")}
@@ -187,7 +187,7 @@ const Header = () => {
               <ChevronDown className={`w-3 h-3 transition-transform ${topupOpen ? "rotate-180" : ""}`} />
             </button>
             {topupOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50 animate-fade-in">
+              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-[100] animate-fade-in">
                 <div className="px-3 py-2 border-b border-border flex items-center gap-2 text-primary font-bold text-xs">
                   <Landmark className="w-4 h-4" /> Chọn phương thức nạp
                 </div>
@@ -198,6 +198,10 @@ const Header = () => {
                 <button onClick={() => { navigate("/nap-tien?method=card"); setTopupOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                   <Smartphone className="w-4 h-4 text-accent" /> Thẻ cào
+                </button>
+                <button onClick={() => { navigate("/nap-tien?method=ewallet"); setTopupOpen(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                  <Wallet className="w-4 h-4 text-primary" /> Ví điện tử
                 </button>
               </div>
             )}
@@ -211,18 +215,18 @@ const Header = () => {
               <ChevronDown className={`w-3 h-3 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
             </button>
             {historyOpen && (
-              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[200px] z-50 animate-fade-in">
-                <button onClick={() => { navigate("/lich-su-nap"); setHistoryOpen(false); }}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <Wallet className="w-4 h-4 text-primary" /> Lịch sử nạp
-                </button>
+              <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[220px] z-[100] animate-fade-in">
                 <button onClick={() => { navigate("/lich-su-mua"); setHistoryOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <ShoppingCart className="w-4 h-4 text-primary" /> Lịch sử mua
+                  <ShoppingCart className="w-4 h-4 text-primary" /> LSMH - Lịch sử mua hàng
+                </button>
+                <button onClick={() => { navigate("/lich-su-nap"); setHistoryOpen(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                  <Wallet className="w-4 h-4 text-primary" /> LSNT - Lịch sử nạp tiền
                 </button>
                 <button onClick={() => { navigate("/bien-dong-so-du"); setHistoryOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <FileText className="w-4 h-4 text-primary" /> Biến động số dư
+                  <FileText className="w-4 h-4 text-primary" /> BDSD - Biến động số dư
                 </button>
               </div>
             )}
