@@ -24,6 +24,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ClickSparkle from "./components/ClickSparkle";
 import TopupNotifier from "./components/TopupNotifier";
 import KietzBadge from "./components/KietzBadge";
+import PageLoader from "./components/PageLoader";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
         <TopupNotifier />
         <KietzBadge />
         <BrowserRouter>
+          <PageLoader />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/nap-tien" element={<TopUp />} />
