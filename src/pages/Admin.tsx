@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, CreditCard, Package, LayoutDashboard, LogOut, ChevronLeft, Gamepad2, ShoppingBag, FolderOpen, Tag, UserPlus, FileText } from "lucide-react";
+import { Users, CreditCard, Package, LayoutDashboard, LogOut, ChevronLeft, Gamepad2, ShoppingBag, FolderOpen, Tag, UserPlus, FileText, Rocket } from "lucide-react";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminTopups from "@/components/admin/AdminTopups";
 import AdminProducts from "@/components/admin/AdminProducts";
@@ -12,8 +12,9 @@ import AdminCategories from "@/components/admin/AdminCategories";
 import AdminDiscountCodes from "@/components/admin/AdminDiscountCodes";
 import AdminCTV from "@/components/admin/AdminCTV";
 import AdminShopSettings from "@/components/admin/AdminShopSettings";
+import AdminBoostOrders from "@/components/admin/AdminBoostOrders";
 
-type Tab = "overview" | "users" | "topups" | "products" | "orders" | "categories" | "discounts" | "ctv" | "shop_settings";
+type Tab = "overview" | "users" | "topups" | "products" | "orders" | "categories" | "discounts" | "ctv" | "shop_settings" | "boost_orders";
 
 const Admin = () => {
   const { user, signOut, loading } = useAuth();
@@ -22,7 +23,7 @@ const Admin = () => {
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<Tab>(() => {
     const saved = localStorage.getItem("admin_tab");
-    return (saved && ["overview","users","topups","products","orders","categories","discounts","ctv","shop_settings"].includes(saved)) ? saved as Tab : "overview";
+    return (saved && ["overview","users","topups","products","orders","categories","discounts","ctv","shop_settings","boost_orders"].includes(saved)) ? saved as Tab : "overview";
   });
 
   useEffect(() => {
@@ -51,6 +52,7 @@ const Admin = () => {
   const tabs = [
     { id: "overview" as Tab, name: "Tổng quan", icon: LayoutDashboard },
     { id: "orders" as Tab, name: "Đơn hàng", icon: ShoppingBag },
+    { id: "boost_orders" as Tab, name: "Đơn cày thuê", icon: Rocket },
     { id: "users" as Tab, name: "Người dùng", icon: Users },
     { id: "topups" as Tab, name: "Nạp tiền", icon: CreditCard },
     { id: "products" as Tab, name: "Sản phẩm", icon: Package },
@@ -106,6 +108,7 @@ const Admin = () => {
         <div className="max-w-6xl mx-auto">
           {tab === "overview" && <AdminOverview />}
           {tab === "orders" && <AdminOrders />}
+          {tab === "boost_orders" && <AdminBoostOrders />}
           {tab === "users" && <AdminUsers />}
           {tab === "topups" && <AdminTopups />}
           {tab === "products" && <AdminProducts />}

@@ -60,7 +60,7 @@ const Header = () => {
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
-  const isHistoryActive = ["/lich-su-nap", "/lich-su-mua", "/bien-dong-so-du", "/lich-su"].some(p => currentPath.startsWith(p));
+  const isHistoryActive = ["/lich-su-nap", "/lich-su-mua", "/bien-dong-so-du", "/lich-su", "/lich-su-cay-thue"].some(p => currentPath.startsWith(p));
   const isTopupActive = currentPath.startsWith("/nap-tien");
 
   return (
@@ -227,6 +227,10 @@ const Header = () => {
                 <button onClick={() => { navigate("/bien-dong-so-du"); setHistoryOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                   <FileText className="w-4 h-4 text-primary" /> BDSD - Biến động số dư
+                </button>
+                <button onClick={() => { navigate("/lich-su-cay-thue"); setHistoryOpen(false); }}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                  <Package className="w-4 h-4 text-accent" /> LSCT - Lịch sử cày thuê
                 </button>
               </div>
             )}

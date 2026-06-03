@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      boost_orders: {
+        Row: {
+          account_password: string
+          account_username: string
+          admin_note: string | null
+          created_at: string
+          customer_note: string | null
+          id: string
+          order_code: string | null
+          price: number
+          product_id: string
+          product_name: string
+          refunded: boolean
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_password: string
+          account_username: string
+          admin_note?: string | null
+          created_at?: string
+          customer_note?: string | null
+          id?: string
+          order_code?: string | null
+          price: number
+          product_id: string
+          product_name: string
+          refunded?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_password?: string
+          account_username?: string
+          admin_note?: string | null
+          created_at?: string
+          customer_note?: string | null
+          id?: string
+          order_code?: string | null
+          price?: number
+          product_id?: string
+          product_name?: string
+          refunded?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -195,6 +246,7 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
+          product_type: Database["public"]["Enums"]["product_type"]
           status: string
           stock: number
           updated_at: string
@@ -208,6 +260,7 @@ export type Database = {
           image_url?: string | null
           name: string
           price?: number
+          product_type?: Database["public"]["Enums"]["product_type"]
           status?: string
           stock?: number
           updated_at?: string
@@ -221,6 +274,7 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
+          product_type?: Database["public"]["Enums"]["product_type"]
           status?: string
           stock?: number
           updated_at?: string
@@ -355,6 +409,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_boost_order: {
+        Args: { p_admin_note: string; p_order_id: string; p_refund: boolean }
+        Returns: Json
+      }
       generate_transfer_code: { Args: never; Returns: string }
       get_email_by_username: { Args: { p_username: string }; Returns: string }
       get_recent_purchases: {
@@ -389,6 +447,16 @@ export type Database = {
         Args: { _category: string; _user_id: string }
         Returns: boolean
       }
+      purchase_boost: {
+        Args: {
+          p_note: string
+          p_password: string
+          p_product_id: string
+          p_user_id: string
+          p_username: string
+        }
+        Returns: Json
+      }
       purchase_product: {
         Args: { p_product_id: string; p_user_id: string }
         Returns: Json
@@ -406,6 +474,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      product_type: "account" | "boost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -534,6 +603,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      product_type: ["account", "boost"],
     },
   },
 } as const

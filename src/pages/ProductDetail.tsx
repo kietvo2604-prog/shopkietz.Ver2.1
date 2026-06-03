@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Package, ShoppingCart, Loader2, AlertCircle, Clock, Pencil, Save, X, ImagePlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PurchaseConfirmDialog from "@/components/PurchaseConfirmDialog";
+import BoostPurchaseDialog from "@/components/BoostPurchaseDialog";
+import { useNavigate } from "react-router-dom";
 
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
@@ -46,7 +48,9 @@ const ProductDetail = () => {
   const [editForm, setEditForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showBoost, setShowBoost] = useState(false);
   const [buying, setBuying] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -115,6 +119,22 @@ const ProductDetail = () => {
     setBuying(false);
     toast({ title: "✅ Mua hàng thành công!", description: `Mã đơn: ${result.order_code}` });
     window.location.href = `/don-hang/${result.order_id}`;
+  };
+
+  const handleBoostBuy = async (username: string, password: string, note: string) => {
+    if (!user) return;
+    setBuying(true);
+    const { data, error } = await supabase.rpc("purchase_boost" as any, {
+      p_user_id: user.id, p_product_id: product.id,
+      p_username: username, p_password: password, p_note: note,
+    });
+    setBuying(false);
+    if (error) { toast({ title: "Lỗi", description: error.message, variant: "destructive" }); return; }
+    const r = data as any;
+    if (!r?.success) { toast({ title: "❌ " + (r?.error || "Đặt thất bại"), variant: "destructive" }); return; }
+    setShowBoost(false);
+    toast({ title: "✅ Đã đặt dịch vụ cày thuê!", description: `Mã đơn: ${r.order_code}. Admin sẽ xử lý sớm.` });
+    navigate("/lich-su-cay-thue");
   };
 
   if (loading) {
@@ -279,14 +299,24 @@ const ProductDetail = () => {
                 )}
 
                 {user ? (
-                  <button
-                    onClick={() => setShowConfirm(true)}
-                    disabled={buying || product.stock <= 0}
-                    className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    {product.stock <= 0 ? "Hết hàng" : "Mua ngay"}
-                  </button>
+                  product.product_type === "boost" ? (
+                    <button
+                      onClick={() => setShowBoost(true)}
+                      disabled={buying}
+                      className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart className="w-5 h-5" /> Đặt dịch vụ cày thuê
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setShowConfirm(true)}
+                      disabled={buying || product.stock <= 0}
+                      className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      {product.stock <= 0 ? "Hết hàng" : "Mua ngay"}
+                    </button>
+                  )
                 ) : (
                   <Link to="/dang-nhap" className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                     <ShoppingCart className="w-5 h-5" /> Đăng nhập để mua
@@ -309,8 +339,18 @@ const ProductDetail = () => {
         onConfirm={(qty, code) => handleBuy(qty, code)}
         buying={buying}
       />
+
+      <BoostPurchaseDialog
+        open={showBoost}
+        onOpenChange={setShowBoost}
+        productName={product.name}
+        price={formatVND(product.price)}
+        onConfirm={handleBoostBuy}
+        buying={buying}
+      />
     </div>
   );
 };
+
 
 export default ProductDetail;
