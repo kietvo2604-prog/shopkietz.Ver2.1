@@ -103,7 +103,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
           <h3 className="font-semibold text-foreground text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
             {name}
           </h3>
-          <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+          <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-line">{description}</p>
 
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <span className="text-lg font-semibold text-yellow-500">

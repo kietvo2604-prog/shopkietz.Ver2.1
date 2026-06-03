@@ -25,7 +25,7 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all border ${
           activeCategory === "all"
             ? "bg-yellow-400 text-yellow-950 border-yellow-500 shadow-md"
-            : "bg-card text-foreground border-border hover:border-primary hover:bg-muted"
+            : "bg-foreground text-background border-foreground hover:opacity-80"
         }`}
       >
         <Package className="w-4 h-4" />
@@ -40,16 +40,16 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all border ${
               isActive
                 ? "bg-yellow-400 text-yellow-950 border-yellow-500 shadow-md"
-                : "bg-card text-foreground border-border hover:border-primary hover:bg-muted"
+                : "bg-foreground text-background border-foreground hover:opacity-80"
             }`}
           >
             {cat.image_url ? (
               <div className="w-6 h-6 rounded overflow-hidden shrink-0 bg-background flex items-center justify-center border border-border">
-                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-contain" onError={(e) => { e.currentTarget.style.display = "none"; }} />
               </div>
             ) : (
-              <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center shrink-0">
-                <Package className="w-3.5 h-3.5 text-primary" />
+              <div className="w-6 h-6 rounded bg-background/20 flex items-center justify-center shrink-0">
+                <Package className="w-3.5 h-3.5" />
               </div>
             )}
             <span className="uppercase">{cat.name}</span>
