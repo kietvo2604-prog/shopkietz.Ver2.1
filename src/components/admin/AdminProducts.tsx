@@ -200,6 +200,15 @@ const AdminProducts = () => {
               </select>
             </div>
           </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Loại sản phẩm</label>
+              <select value={form.product_type} onChange={(e) => setForm({ ...form, product_type: e.target.value as "account" | "boost" })}
+                className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm">
+                <option value="account">Bán tài khoản (kho tài khoản sẵn có)</option>
+                <option value="boost">Cày thuê (khách nhập TK/MK khi đặt)</option>
+              </select>
+            </div>
+          </div>
           <ImagePasteUpload
             value={form.image_url}
             onChange={(url) => setForm({ ...form, image_url: url })}
@@ -212,15 +221,21 @@ const AdminProducts = () => {
               placeholder="Dòng 1&#10;Dòng 2&#10;Dòng 3"
               className="w-full bg-muted border border-border rounded-lg py-3 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-base leading-relaxed resize-y" />
           </div>
-          <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">
-              <Package className="w-4 h-4 inline mr-1" /> Thêm tài khoản (mỗi dòng = 1 tài khoản riêng)
-            </label>
-            <textarea value={accountLines} onChange={(e) => setAccountLines(e.target.value)} rows={5}
-              placeholder={"VD:\nuser1:pass1\nuser2:pass2\nuser3:pass3"}
-              className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm resize-none font-mono" />
-            <p className="text-xs text-muted-foreground mt-1">{accountLines.split("\n").filter(l => l.trim()).length} tài khoản sẽ được thêm vào kho</p>
-          </div>
+          {form.product_type === "account" ? (
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                <Package className="w-4 h-4 inline mr-1" /> Thêm tài khoản (mỗi dòng = 1 tài khoản riêng)
+              </label>
+              <textarea value={accountLines} onChange={(e) => setAccountLines(e.target.value)} rows={5}
+                placeholder={"VD:\nuser1:pass1\nuser2:pass2\nuser3:pass3"}
+                className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm resize-none font-mono" />
+              <p className="text-xs text-muted-foreground mt-1">{accountLines.split("\n").filter(l => l.trim()).length} tài khoản sẽ được thêm vào kho</p>
+            </div>
+          ) : (
+            <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 text-xs text-foreground">
+              <b>Cày thuê:</b> không cần nhập kho tài khoản. Khi khách đặt, hệ thống yêu cầu khách nhập TK/MK và lời nhắn — bạn xem & xử lý ở tab <b>Đơn cày thuê</b>.
+            </div>
+          )}
           <div className="flex gap-2">
             <button onClick={handleSave} className="px-6 py-2.5 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
               {editing ? "Cập nhật" : "Thêm"}
