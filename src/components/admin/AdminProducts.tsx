@@ -198,8 +198,6 @@ const AdminProducts = () => {
                 <option value="active">Đang bán</option>
                 <option value="inactive">Ẩn</option>
               </select>
-            </div>
-          </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1 block">Loại sản phẩm</label>
               <select value={form.product_type} onChange={(e) => setForm({ ...form, product_type: e.target.value as "account" | "boost" })}
