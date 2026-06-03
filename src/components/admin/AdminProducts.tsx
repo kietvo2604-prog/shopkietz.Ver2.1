@@ -135,7 +135,7 @@ const AdminProducts = () => {
   };
 
   const handleEdit = (p: Product) => {
-    setForm({ name: p.name, description: p.description || "", price: p.price, category: p.category, status: p.status, image_url: (p as any).image_url || "" });
+    setForm({ name: p.name, description: p.description || "", price: p.price, category: p.category, status: p.status, image_url: (p as any).image_url || "", product_type: ((p as any).product_type as "account" | "boost") || "account" });
     setAccountLines("");
     setEditing(p);
     setShowForm(true);
