@@ -60,7 +60,7 @@ const Header = () => {
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
-  const isHistoryActive = ["/lich-su-nap", "/lich-su-mua", "/bien-dong-so-du", "/lich-su"].some(p => currentPath.startsWith(p));
+  const isHistoryActive = ["/lich-su-nap", "/lich-su-mua", "/bien-dong-so-du", "/lich-su", "/lich-su-cay-thue"].some(p => currentPath.startsWith(p));
   const isTopupActive = currentPath.startsWith("/nap-tien");
 
   return (
