@@ -108,6 +108,7 @@ const Admin = () => {
         <div className="max-w-6xl mx-auto">
           {tab === "overview" && <AdminOverview />}
           {tab === "orders" && <AdminOrders />}
+          {tab === "boost_orders" && <AdminBoostOrders />}
           {tab === "users" && <AdminUsers />}
           {tab === "topups" && <AdminTopups />}
           {tab === "products" && <AdminProducts />}
