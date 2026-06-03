@@ -23,7 +23,7 @@ const Admin = () => {
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<Tab>(() => {
     const saved = localStorage.getItem("admin_tab");
-    return (saved && ["overview","users","topups","products","orders","categories","discounts","ctv","shop_settings"].includes(saved)) ? saved as Tab : "overview";
+    return (saved && ["overview","users","topups","products","orders","categories","discounts","ctv","shop_settings","boost_orders"].includes(saved)) ? saved as Tab : "overview";
   });
 
   useEffect(() => {
