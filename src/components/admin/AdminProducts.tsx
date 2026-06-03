@@ -37,7 +37,7 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", price: 0, category: "Blox Fruits", status: "active", image_url: "" });
+  const [form, setForm] = useState({ name: "", description: "", price: 0, category: "Blox Fruits", status: "active", image_url: "", product_type: "account" as "account" | "boost" });
   const [accountLines, setAccountLines] = useState("");
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [productAccounts, setProductAccounts] = useState<ProductAccount[]>([]);
