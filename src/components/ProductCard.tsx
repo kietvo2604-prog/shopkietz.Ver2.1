@@ -171,6 +171,16 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         buying={buying}
       />
 
+      <BoostPurchaseDialog
+        open={showBoost}
+        onOpenChange={setShowBoost}
+        productName={name}
+        price={price}
+        onConfirm={handleBoostBuy}
+        buying={buying}
+      />
+
+
       {/* Success dialog - account info hidden */}
       {showAccDialog && (
         <Dialog open={showAccDialog} onOpenChange={setShowAccDialog}>
