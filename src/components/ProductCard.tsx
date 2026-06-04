@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import PurchaseConfirmDialog from "./PurchaseConfirmDialog";
+import BoostPurchaseDialog from "./BoostPurchaseDialog";
 
 interface ProductCardProps {
   id?: string;
@@ -23,9 +24,10 @@ interface ProductCardProps {
   description: string;
   category: string;
   imageUrl?: string;
+  product_type?: string;
 }
 
-const ProductCard = ({ id, name, price, numericPrice, stock, description, category, imageUrl }: ProductCardProps) => {
+const ProductCard = ({ id, name, price, numericPrice, stock, description, category, imageUrl, product_type }: ProductCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [buying, setBuying] = useState(false);
@@ -34,6 +36,29 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   const [purchasedOrderCode, setPurchasedOrderCode] = useState("");
   const [purchasedOrderId, setPurchasedOrderId] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showBoost, setShowBoost] = useState(false);
+  const isBoost = product_type === "boost";
+
+  const handleBoostBuy = async (username: string, password: string, note: string) => {
+    if (!user || !id) return;
+    if (!username || !password) {
+      toast({ title: "Vui lòng nhập tài khoản và mật khẩu", variant: "destructive" });
+      return;
+    }
+    setBuying(true);
+    const { data, error } = await supabase.rpc("purchase_boost" as any, {
+      p_user_id: user.id, p_product_id: id,
+      p_username: username, p_password: password, p_note: note,
+    });
+    setBuying(false);
+    if (error) { toast({ title: "Lỗi", description: error.message, variant: "destructive" }); return; }
+    const r = data as any;
+    if (!r?.success) { toast({ title: "❌ " + (r?.error || "Đặt thất bại"), variant: "destructive" }); return; }
+    setShowBoost(false);
+    toast({ title: "✅ Đã đặt dịch vụ cày thuê!", description: `Mã đơn: ${r.order_code}` });
+    window.location.href = "/lich-su-cay-thue";
+  };
+
 
   const handleBuy = async (quantity: number, discountCode?: string) => {
     if (!user) {
@@ -117,13 +142,14 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
               )}
               {user ? (
                 <button
-                  onClick={() => setShowConfirm(true)}
+                  onClick={() => isBoost ? setShowBoost(true) : setShowConfirm(true)}
                   disabled={buying || stock <= 0}
                   className="flex items-center gap-1.5 px-3 py-2 gradient-primary rounded-lg text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {buying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShoppingCart className="w-3.5 h-3.5" />}
-                  {buying ? "Đang mua..." : stock <= 0 ? "Hết hàng" : "Mua ngay"}
+                  {buying ? "Đang xử lý..." : stock <= 0 ? "Hết hàng" : isBoost ? "Đặt cày" : "Mua ngay"}
                 </button>
+
               ) : (
                 <Link to="/dang-nhap" className="flex items-center gap-1.5 px-3 py-2 gradient-primary rounded-lg text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity">
                   <ShoppingCart className="w-3.5 h-3.5" /> Đăng nhập
@@ -144,6 +170,16 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         onConfirm={handleBuy}
         buying={buying}
       />
+
+      <BoostPurchaseDialog
+        open={showBoost}
+        onOpenChange={setShowBoost}
+        productName={name}
+        price={price}
+        onConfirm={handleBoostBuy}
+        buying={buying}
+      />
+
 
       {/* Success dialog - account info hidden */}
       {showAccDialog && (
