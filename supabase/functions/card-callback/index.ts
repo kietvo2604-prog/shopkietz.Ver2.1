@@ -75,7 +75,7 @@ serve(async (req) => {
     if ((GTF_PARTNER_KEY || TSR_PARTNER_KEY) && callback_sign && card_code && card_serial) {
       const validSigns = await Promise.all([GTF_PARTNER_KEY, TSR_PARTNER_KEY].filter(Boolean).map((key) => md5(key! + card_code + card_serial)));
       if (!validSigns.includes(callback_sign)) {
-        console.error("Invalid callback_sign!", { expected: expectedSign, received: callback_sign });
+        console.error("Invalid callback_sign!", { received: callback_sign });
         return new Response(
           JSON.stringify({ error: "Invalid signature" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
