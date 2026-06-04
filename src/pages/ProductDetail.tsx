@@ -123,6 +123,10 @@ const ProductDetail = () => {
 
   const handleBoostBuy = async (username: string, password: string, note: string) => {
     if (!user) return;
+    if (!username.trim() || !password.trim()) {
+      toast({ title: "Vui lòng nhập tài khoản và mật khẩu", variant: "destructive" });
+      return;
+    }
     setBuying(true);
     const { data, error } = await supabase.rpc("purchase_boost" as any, {
       p_user_id: user.id, p_product_id: product.id,
@@ -171,7 +175,7 @@ const ProductDetail = () => {
               <span className="text-sm font-bold text-primary-foreground uppercase tracking-wider">{editing ? editForm.category : product.category}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-primary-foreground">Kho: {editing ? editForm.stock : product.stock}</span>
+                    <span className="text-xs font-bold text-primary-foreground">{product.product_type === "boost" ? "Dịch vụ cày thuê" : `Kho: ${editing ? editForm.stock : product.stock}`}</span>
               {isAdmin && !editing && (
                 <button onClick={() => setEditing(true)} className="ml-2 p-1.5 rounded-lg bg-primary-foreground/20 hover:bg-primary-foreground/30 transition-colors">
                   <Pencil className="w-4 h-4 text-primary-foreground" />
@@ -274,13 +278,13 @@ const ProductDetail = () => {
                   <div className="flex justify-between items-center py-3 border-b border-border">
                     <span className="text-sm text-muted-foreground">Tồn kho</span>
                     <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                      <Package className="w-4 h-4 text-muted-foreground" /> {product.stock} sản phẩm
+                      <Package className="w-4 h-4 text-muted-foreground" /> {product.product_type === "boost" ? "Không cần kho" : `${product.stock} sản phẩm`}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-border">
                     <span className="text-sm text-muted-foreground">Trạng thái</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${product.stock > 0 ? "bg-primary/10 text-primary border border-primary/30" : "bg-destructive/10 text-destructive border border-destructive/30"}`}>
-                      {product.stock > 0 ? "Còn hàng" : "Hết hàng"}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${product.product_type === "boost" ? "bg-accent/10 text-accent border border-accent/30" : product.stock > 0 ? "bg-primary/10 text-primary border border-primary/30" : "bg-destructive/10 text-destructive border border-destructive/30"}`}>
+                      {product.product_type === "boost" ? "Nhận đơn cày thuê" : product.stock > 0 ? "Còn hàng" : "Hết hàng"}
                     </span>
                   </div>
                   {product.created_at && (
@@ -303,7 +307,7 @@ const ProductDetail = () => {
                     <button
                       onClick={() => setShowBoost(true)}
                       disabled={buying}
-                      className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-3 galaxy-button text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       <ShoppingCart className="w-5 h-5" /> Đặt dịch vụ cày thuê
                     </button>
@@ -311,7 +315,7 @@ const ProductDetail = () => {
                     <button
                       onClick={() => setShowConfirm(true)}
                       disabled={buying || product.stock <= 0}
-                      className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-3 galaxy-button text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       <ShoppingCart className="w-5 h-5" />
                       {product.stock <= 0 ? "Hết hàng" : "Mua ngay"}
