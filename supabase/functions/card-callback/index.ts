@@ -24,6 +24,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const GTF_PARTNER_KEY = Deno.env.get("GTF_PARTNER_KEY");
+    const TSR_PARTNER_KEY = Deno.env.get("TSR_PARTNER_KEY");
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse callback data - could be form-urlencoded or JSON
@@ -71,10 +72,10 @@ serve(async (req) => {
     }
 
     // Verify callback_sign if we have partner_key
-    if (GTF_PARTNER_KEY && callback_sign && card_code && card_serial) {
-      const expectedSign = await md5(GTF_PARTNER_KEY + card_code + card_serial);
-      if (expectedSign !== callback_sign) {
-        console.error("Invalid callback_sign!", { expected: expectedSign, received: callback_sign });
+    if ((GTF_PARTNER_KEY || TSR_PARTNER_KEY) && callback_sign && card_code && card_serial) {
+      const validSigns = await Promise.all([GTF_PARTNER_KEY, TSR_PARTNER_KEY].filter(Boolean).map((key) => md5(key! + card_code + card_serial)));
+      if (!validSigns.includes(callback_sign)) {
+        console.error("Invalid callback_sign!", { received: callback_sign });
         return new Response(
           JSON.stringify({ error: "Invalid signature" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
