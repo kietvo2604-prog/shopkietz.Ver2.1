@@ -67,7 +67,12 @@ const SideNav = ({ open, onClose }: SideNavProps) => {
         <div className="px-4 pt-2 pb-4">
           <a href="/" className="block rounded-lg overflow-hidden border-2 border-primary/60 shadow-[0_0_20px_hsl(var(--primary)/0.45)]">
             {logoUrl ? (
-              <img src={logoUrl} alt="Shop Logo" className="w-full h-32 object-cover" />
+              <img
+                src={logoUrl}
+                alt="Shop Logo"
+                className="w-full h-32 object-cover"
+                onError={() => setLogoUrl(null)}
+              />
             ) : (
               <div className="w-full h-32 gradient-primary flex items-center justify-center">
                 <Gamepad2 className="w-12 h-12 text-primary-foreground" />
