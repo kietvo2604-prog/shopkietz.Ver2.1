@@ -83,7 +83,12 @@ const Header = () => {
         <div className="flex items-center justify-between gap-3 sm:gap-4">
           <a href="/" className="flex items-center gap-2 shrink-0 min-w-0">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-contain shrink-0" />
+              <img
+                src={logoUrl}
+                alt="Logo"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-contain shrink-0"
+                onError={() => setLogoUrl(null)}
+              />
             ) : (
               <Gamepad2 className="w-9 h-9 sm:w-10 sm:h-10 text-primary neon-text animate-spin-slow shrink-0" />
             )}
