@@ -259,72 +259,84 @@ const ProductDetail = () => {
               </div>
             ) : (
               <>
-                <h1 className="font-display text-xl font-bold text-foreground">{product.name}</h1>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-3 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Danh mục</span>
-                    <span className="px-3 py-1 bg-muted rounded-lg text-xs font-semibold text-foreground">{product.category}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Giá</span>
-                    {user ? (
-                      <span className="text-xl font-semibold text-yellow-500">{formatVND(product.price)}</span>
-                    ) : (
-                      <Link to="/dang-nhap" className="text-sm text-primary hover:underline italic">Đăng nhập để xem giá</Link>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center py-3 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Tồn kho</span>
-                    <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                      <Package className="w-4 h-4 text-muted-foreground" /> {product.product_type === "boost" ? "Không cần kho" : `${product.stock} sản phẩm`}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-3 border-b border-border">
-                    <span className="text-sm text-muted-foreground">Trạng thái</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${product.product_type === "boost" ? "bg-accent/10 text-accent border border-accent/30" : product.stock > 0 ? "bg-primary/10 text-primary border border-primary/30" : "bg-destructive/10 text-destructive border border-destructive/30"}`}>
-                      {product.product_type === "boost" ? "Nhận đơn cày thuê" : product.stock > 0 ? "Còn hàng" : "Hết hàng"}
-                    </span>
-                  </div>
-                  {product.created_at && (
-                    <div className="flex justify-between items-center py-3 border-b border-border">
-                      <span className="text-sm text-muted-foreground">Ngày đăng</span>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(product.created_at).toLocaleString("vi-VN")}</span>
+                {/* Title with product image icon */}
+                <div className="flex items-center gap-3">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} className="w-11 h-11 rounded-lg object-cover border border-border shrink-0" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
+                      <Package className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
+                  <h1 className="font-display text-2xl font-extrabold text-foreground leading-tight">{product.name}</h1>
                 </div>
 
+                {/* Info pills */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-fuchsia-600 text-white text-xs font-bold shadow-sm">
+                    Kho hàng: <span className="ml-1 font-extrabold">{product.product_type === "boost" ? "∞" : product.stock.toLocaleString("vi-VN")}</span>
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-teal-500 text-white text-xs font-bold shadow-sm">
+                    Đã bán: <span className="ml-1 font-extrabold">{soldCount}</span>
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-muted text-foreground text-xs font-bold border border-border">
+                    {product.category}
+                  </span>
+                  <span className={`inline-flex items-center px-3 py-1.5 rounded-md text-xs font-bold border ${product.product_type === "boost" ? "bg-accent/10 text-accent border-accent/30" : product.stock > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-destructive/10 text-destructive border-destructive/30"}`}>
+                    {product.product_type === "boost" ? "Nhận đơn cày thuê" : product.stock > 0 ? "Còn hàng" : "Hết hàng"}
+                  </span>
+                </div>
+
+                {/* Price */}
+                {user ? (
+                  <div className="text-3xl font-extrabold text-primary">{formatVND(product.price)}</div>
+                ) : (
+                  <Link to="/dang-nhap" className="inline-block text-base text-primary hover:underline italic">Đăng nhập để xem giá</Link>
+                )}
+
+                {/* Description with images */}
                 {product.description && (
-                  <div className="bg-muted border border-border rounded-xl p-4">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Mô tả:</p>
+                  <div className="pt-2">
                     <DescriptionWithImages text={product.description} />
                   </div>
                 )}
 
-                {user ? (
-                  product.product_type === "boost" ? (
-                    <button
-                      onClick={() => setShowBoost(true)}
-                      disabled={buying}
-                      className="w-full py-3 galaxy-button text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      <ShoppingCart className="w-5 h-5" /> Đặt dịch vụ cày thuê
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setShowConfirm(true)}
-                      disabled={buying || product.stock <= 0}
-                      className="w-full py-3 galaxy-button text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      {product.stock <= 0 ? "Hết hàng" : "Mua ngay"}
-                    </button>
-                  )
-                ) : (
-                  <Link to="/dang-nhap" className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                    <ShoppingCart className="w-5 h-5" /> Đăng nhập để mua
-                  </Link>
+                {product.created_at && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Ngày đăng: {new Date(product.created_at).toLocaleString("vi-VN")}
+                  </p>
                 )}
+
+                {/* Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  {user ? (
+                    product.product_type === "boost" ? (
+                      <button
+                        onClick={() => setShowBoost(true)}
+                        disabled={buying}
+                        className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <ShoppingCart className="w-5 h-5" /> ĐẶT CÀY THUÊ
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowConfirm(true)}
+                        disabled={buying || product.stock <= 0}
+                        className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        {product.stock <= 0 ? "HẾT HÀNG" : "MUA NGAY"}
+                      </button>
+                    )
+                  ) : (
+                    <Link to="/dang-nhap" className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-md">
+                      <ShoppingCart className="w-5 h-5" /> ĐĂNG NHẬP ĐỂ MUA
+                    </Link>
+                  )}
+                  <Link to="/" className="w-full py-3 bg-muted text-foreground rounded-xl text-sm font-bold hover:bg-border transition-colors flex items-center justify-center gap-2 border border-border">
+                    <ArrowLeft className="w-5 h-5" /> QUAY LẠI
+                  </Link>
+                </div>
               </>
             )}
           </div>
