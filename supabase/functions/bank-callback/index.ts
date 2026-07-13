@@ -61,8 +61,12 @@ serve(async (req) => {
       );
     }
 
-    // Calculate bonus: under 50k → +10%, 50k+ → +5%
-    const bonusRate = amount < 50000 ? 0.10 : 0.05;
+    // Tiered bonus: ≥1M → 15%, ≥100k → 10%, ≥50k → 6%, ≥10k → 5%, <10k → 0%
+    const bonusRate =
+      amount >= 1000000 ? 0.15 :
+      amount >= 100000  ? 0.10 :
+      amount >= 50000   ? 0.06 :
+      amount >= 10000   ? 0.05 : 0;
     const bonusAmount = Math.floor(amount * bonusRate);
     const creditAmount = amount + bonusAmount;
 
