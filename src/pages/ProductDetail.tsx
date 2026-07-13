@@ -42,6 +42,7 @@ const ProductDetail = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [product, setProduct] = useState<any>(null);
+  const [soldCount, setSoldCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -58,6 +59,12 @@ const ProductDetail = () => {
       const { data } = await supabase.from("products").select("*").eq("id", id!).single();
       setProduct(data);
       if (data) setEditForm(data);
+      const { count } = await supabase
+        .from("product_accounts")
+        .select("*", { count: "exact", head: true })
+        .eq("product_id", id!)
+        .eq("is_sold", true);
+      setSoldCount(count || 0);
       setLoading(false);
     };
     if (id) fetchProduct();
