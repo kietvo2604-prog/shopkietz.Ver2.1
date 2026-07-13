@@ -33,19 +33,22 @@ const AdminTopups = () => {
 
   useEffect(() => { fetchRequests(); }, [filter]);
 
+  const bonusRateFor = (amount: number): number => {
+    if (amount >= 1000000) return 0.15;
+    if (amount >= 100000) return 0.10;
+    if (amount >= 50000) return 0.06;
+    if (amount >= 10000) return 0.05;
+    return 0;
+  };
+
   const calculateCredit = (amount: number, method: string): number => {
     const isCard = method.toLowerCase().includes("thẻ cào");
     if (isCard) {
       // Card: 80% (20% tax)
       return Math.floor(amount * 0.8);
-    } else {
-      // ATM/Wallet: < 50k → +10%, >= 50k → +5%
-      if (amount >= 50000) {
-        return Math.floor(amount * 1.05);
-      } else {
-        return Math.floor(amount * 1.10);
-      }
     }
+    // ATM/Wallet: tiered bonus
+    return Math.floor(amount * (1 + bonusRateFor(amount)));
   };
 
   const handleAction = async (id: string, userId: string, amount: number, method: string, action: "approved" | "rejected") => {
