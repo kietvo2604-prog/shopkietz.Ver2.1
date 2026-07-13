@@ -169,27 +169,19 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopBar /><Header />
-      <main className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
+      <main className="container mx-auto px-4 py-8 max-w-3xl space-y-6">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Quay lại cửa hàng
         </Link>
 
-        <div className="bg-card border border-primary/20 rounded-xl overflow-hidden neon-card animate-slide-up">
-          {/* Header */}
-          <div className="gradient-primary px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Package className="w-6 h-6 text-primary-foreground" />
-              <span className="text-sm font-bold text-primary-foreground uppercase tracking-wider">{editing ? editForm.category : product.category}</span>
+        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg animate-slide-up">
+          {isAdmin && !editing && (
+            <div className="flex justify-end px-6 pt-4">
+              <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg bg-muted hover:bg-border transition-colors" title="Chỉnh sửa">
+                <Pencil className="w-4 h-4 text-foreground" />
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-primary-foreground">{product.product_type === "boost" ? "Dịch vụ cày thuê" : `Kho: ${editing ? editForm.stock : product.stock}`}</span>
-              {isAdmin && !editing && (
-                <button onClick={() => setEditing(true)} className="ml-2 p-1.5 rounded-lg bg-primary-foreground/20 hover:bg-primary-foreground/30 transition-colors">
-                  <Pencil className="w-4 h-4 text-primary-foreground" />
-                </button>
-              )}
-            </div>
-          </div>
+          )}
 
           <div className="p-6 space-y-5">
             {editing ? (
