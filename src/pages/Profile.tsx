@@ -155,21 +155,22 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
-                >
-                  {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
-                </button>
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 mt-6">
                 <button
                   onClick={() => navigate("/")}
-                  className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors"
                 >
                   Đóng
                 </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+                >
+                  {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
+                </button>
               </div>
+
             </div>
           </div>
         </div>
