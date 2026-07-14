@@ -113,26 +113,27 @@ const Profile = () => {
           </div>
 
           {/* RIGHT */}
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-card border border-border rounded-xl p-5 text-center neon-card">
-                <p className="text-2xl font-bold text-blue-500">{formatVND(totalTopup)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Tổng tiền nạp</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-5 text-center neon-card">
+                <p className="text-sm sm:text-2xl font-bold text-blue-500 break-words">{formatVND(totalTopup)}</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-1">Tổng tiền nạp</p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-5 text-center neon-card">
-                <p className="text-2xl font-bold text-green-500">{formatVND(totalSpent)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Số Dư Sử Dụng</p>
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-5 text-center neon-card">
+                <p className="text-sm sm:text-2xl font-bold text-green-500 break-words">{formatVND(totalSpent)}</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-1">Số Dư Sử Dụng</p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-5 text-center neon-card">
-                <p className="text-2xl font-bold text-yellow-500">{formatVND(balance)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Số Dư Hiện Tại</p>
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-5 text-center neon-card">
+                <p className="text-sm sm:text-2xl font-bold text-yellow-500 break-words">{formatVND(balance)}</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-1">Số Dư Hiện Tại</p>
               </div>
             </div>
 
             {/* Info form */}
-            <div className="bg-card border border-border rounded-xl p-6 neon-card">
-              <h3 className="text-lg font-bold text-foreground mb-5">Thông Tin Cá Nhân</h3>
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6 neon-card">
+              <h3 className="text-base sm:text-lg font-bold text-foreground mb-4 sm:mb-5">Thông Tin Cá Nhân</h3>
+
               <div className="space-y-4">
                 {[
                   { label: "Họ và Tên", value: fullName, onChange: setFullName, placeholder: "Nhập họ và tên" },
