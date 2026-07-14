@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Package, ShoppingCart, Loader2, AlertCircle, Clock, Pencil, Save, X, ImagePlus, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, Loader2, AlertCircle, Clock, Pencil, Save, X, ImagePlus, CheckCircle2, ImageOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PurchaseConfirmDialog from "@/components/PurchaseConfirmDialog";
 import BoostPurchaseDialog from "@/components/BoostPurchaseDialog";
@@ -14,6 +14,39 @@ import { useNavigate } from "react-router-dom";
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const IMAGE_URL_REGEX = /https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^\s]*)?/gi;
+
+// Big image with skeleton + graceful error
+const ProductImage = ({ src, alt }: { src?: string | null; alt: string }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+  useEffect(() => { setLoaded(false); setErrored(false); }, [src]);
+
+  return (
+    <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border border-border">
+      {!src || errored ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+          <ImageOff className="w-10 h-10" />
+          <span className="text-xs">Không có ảnh</span>
+        </div>
+      ) : (
+        <>
+          {!loaded && (
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-muted via-muted/70 to-muted" />
+          )}
+          <img
+            key={src}
+            src={src}
+            alt={alt}
+            loading="eager"
+            onLoad={() => setLoaded(true)}
+            onError={() => setErrored(true)}
+            className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+          />
+        </>
+      )}
+    </div>
+  );
+};
 
 const DescriptionWithImages = ({ text }: { text: string }) => {
   // Split text into image URLs vs text lines while preserving order
