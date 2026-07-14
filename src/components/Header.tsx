@@ -143,7 +143,7 @@ const Header = () => {
             </a>
 
             {user ? (
-              <div className="relative" ref={userMenuRef}>
+              <div className="relative" ref={userMenuRef} onMouseEnter={() => setUserMenuOpen(true)} onMouseLeave={() => setUserMenuOpen(false)}>
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center gap-2.5 pl-1 pr-3 h-11 rounded-xl border border-border bg-card hover:bg-muted transition-colors">
                   <div className="w-9 h-9 rounded-lg brand-gradient flex items-center justify-center text-white text-sm font-bold overflow-hidden">
                     {displayName.charAt(0).toUpperCase()}
@@ -206,7 +206,7 @@ const Header = () => {
           <nav className={`${mobileOpen ? "flex flex-col w-full" : "hidden"} md:flex md:flex-row md:items-center gap-1`}>
             <NavPill icon={Home} label="Trang chủ" path="/" active={currentPath === "/"} />
             <NavPill icon={LayoutGrid} label="Sản phẩm" path="/?cat=all" />
-            <div className="relative" ref={topupRef}>
+            <div className="relative" ref={topupRef} onMouseEnter={() => setTopupOpen(true)} onMouseLeave={() => setTopupOpen(false)}>
               <button
                 onClick={() => setTopupOpen(!topupOpen)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all ${isTopupActive ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-primary/5 hover:text-primary"}`}
