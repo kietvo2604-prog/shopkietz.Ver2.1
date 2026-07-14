@@ -102,6 +102,30 @@ const ProductDetail = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showBoost, setShowBoost] = useState(false);
   const [buying, setBuying] = useState(false);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  // Build gallery from image_url + any image URLs in description
+  const gallery = useMemo<string[]>(() => {
+    if (!product) return [];
+    const urls: string[] = [];
+    if (product.image_url) urls.push(product.image_url);
+    const desc: string = product.description || "";
+    const found = desc.match(IMAGE_URL_REGEX) || [];
+    for (const u of found) if (!urls.includes(u)) urls.push(u);
+    return urls;
+  }, [product]);
+
+  useEffect(() => {
+    setActiveImage(gallery[0] || null);
+  }, [gallery]);
+
+  // Description text without image URLs (they're shown in the gallery)
+  const descriptionText = useMemo(() => {
+    if (!product?.description) return "";
+    return product.description.replace(IMAGE_URL_REGEX, "").replace(/\n{2,}/g, "\n").trim();
+  }, [product]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
