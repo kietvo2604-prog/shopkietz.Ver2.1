@@ -334,17 +334,30 @@ const ProductDetail = () => {
               </div>
             ) : (
               <>
-                {/* Title with product image icon */}
-                <div className="flex items-center gap-3">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-11 h-11 rounded-lg object-cover border border-border shrink-0" />
-                  ) : (
-                    <div className="w-11 h-11 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
-                      <Package className="w-5 h-5 text-muted-foreground" />
+                {/* Gallery */}
+                <div className="space-y-3">
+                  <ProductImage src={activeImage} alt={product.name} />
+                  {gallery.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+                      {gallery.map((url) => {
+                        const active = url === activeImage;
+                        return (
+                          <button
+                            key={url}
+                            type="button"
+                            onClick={() => setActiveImage(url)}
+                            className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all snap-start bg-muted ${active ? "border-primary shadow-[0_0_0_2px_hsl(var(--primary)/0.25)]" : "border-border hover:border-primary/60 opacity-80 hover:opacity-100"}`}
+                          >
+                            <img src={url} alt="thumb" loading="lazy" className="w-full h-full object-contain" />
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
-                  <h1 className="font-display text-2xl font-extrabold text-foreground leading-tight">{product.name}</h1>
                 </div>
+
+                {/* Title */}
+                <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground leading-tight">{product.name}</h1>
 
                 {/* Info pills */}
                 <div className="flex flex-wrap gap-2">
@@ -364,17 +377,18 @@ const ProductDetail = () => {
 
                 {/* Price */}
                 {user ? (
-                  <div className="text-3xl font-extrabold text-primary">{formatVND(product.price)}</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-primary">{formatVND(product.price)}</div>
                 ) : (
                   <Link to="/dang-nhap" className="inline-block text-base text-primary hover:underline italic">Đăng nhập để xem giá</Link>
                 )}
 
-                {/* Description with images */}
-                {product.description && (
+                {/* Description (text only — images shown in gallery above) */}
+                {descriptionText && (
                   <div className="pt-2">
-                    <DescriptionWithImages text={product.description} />
+                    <DescriptionWithImages text={descriptionText} />
                   </div>
                 )}
+
 
                 {product.created_at && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
