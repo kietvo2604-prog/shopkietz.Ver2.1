@@ -126,7 +126,7 @@ const ProductDetail = () => {
     return product.description.replace(IMAGE_URL_REGEX, "").replace(/\n{2,}/g, "\n").trim();
   }, [product]);
 
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchProduct = async () => {
