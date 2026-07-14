@@ -71,12 +71,13 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <TopBar />
       <Header />
-      <main className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-5">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4 sm:gap-5">
           {/* LEFT — User card */}
           <div className="bg-card border border-border rounded-xl overflow-hidden neon-card">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-6 text-center">
-              <div className="w-24 h-24 rounded-full bg-white mx-auto overflow-hidden border-4 border-white/30 flex items-center justify-center text-3xl font-bold text-blue-700">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-5 sm:p-6 text-center">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white mx-auto overflow-hidden border-4 border-white/30 flex items-center justify-center text-3xl font-bold text-blue-700">
+
                 {profile?.avatar_url
                   ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                   : (username || "U").charAt(0).toUpperCase()}
@@ -112,26 +113,27 @@ const Profile = () => {
           </div>
 
           {/* RIGHT */}
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-card border border-border rounded-xl p-5 text-center neon-card">
-                <p className="text-2xl font-bold text-blue-500">{formatVND(totalTopup)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Tổng tiền nạp</p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-5 text-center neon-card">
+                <p className="text-sm sm:text-2xl font-bold text-blue-500 break-words">{formatVND(totalTopup)}</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-1">Tổng tiền nạp</p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-5 text-center neon-card">
-                <p className="text-2xl font-bold text-green-500">{formatVND(totalSpent)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Số Dư Sử Dụng</p>
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-5 text-center neon-card">
+                <p className="text-sm sm:text-2xl font-bold text-green-500 break-words">{formatVND(totalSpent)}</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-1">Số Dư Sử Dụng</p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-5 text-center neon-card">
-                <p className="text-2xl font-bold text-yellow-500">{formatVND(balance)}</p>
-                <p className="text-sm text-muted-foreground mt-1">Số Dư Hiện Tại</p>
+              <div className="bg-card border border-border rounded-xl p-3 sm:p-5 text-center neon-card">
+                <p className="text-sm sm:text-2xl font-bold text-yellow-500 break-words">{formatVND(balance)}</p>
+                <p className="text-[11px] sm:text-sm text-muted-foreground mt-1">Số Dư Hiện Tại</p>
               </div>
             </div>
 
             {/* Info form */}
-            <div className="bg-card border border-border rounded-xl p-6 neon-card">
-              <h3 className="text-lg font-bold text-foreground mb-5">Thông Tin Cá Nhân</h3>
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6 neon-card">
+              <h3 className="text-base sm:text-lg font-bold text-foreground mb-4 sm:mb-5">Thông Tin Cá Nhân</h3>
+
               <div className="space-y-4">
                 {[
                   { label: "Họ và Tên", value: fullName, onChange: setFullName, placeholder: "Nhập họ và tên" },
@@ -153,21 +155,22 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
-                >
-                  {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
-                </button>
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 mt-6">
                 <button
                   onClick={() => navigate("/")}
-                  className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-semibold transition-colors"
                 >
                   Đóng
                 </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 sm:flex-none px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50 transition-colors"
+                >
+                  {saving ? "Đang lưu..." : "Lưu Thay Đổi"}
+                </button>
               </div>
+
             </div>
           </div>
         </div>

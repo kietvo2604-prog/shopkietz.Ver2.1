@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Package, ShoppingCart, Loader2, AlertCircle, Clock, Pencil, Save, X, ImagePlus, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, Loader2, AlertCircle, Clock, Pencil, Save, X, ImagePlus, CheckCircle2, ImageOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PurchaseConfirmDialog from "@/components/PurchaseConfirmDialog";
 import BoostPurchaseDialog from "@/components/BoostPurchaseDialog";
@@ -14,6 +14,39 @@ import { useNavigate } from "react-router-dom";
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const IMAGE_URL_REGEX = /https?:\/\/[^\s]+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?[^\s]*)?/gi;
+
+// Big image with skeleton + graceful error
+const ProductImage = ({ src, alt }: { src?: string | null; alt: string }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+  useEffect(() => { setLoaded(false); setErrored(false); }, [src]);
+
+  return (
+    <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border border-border">
+      {!src || errored ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+          <ImageOff className="w-10 h-10" />
+          <span className="text-xs">Không có ảnh</span>
+        </div>
+      ) : (
+        <>
+          {!loaded && (
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-muted via-muted/70 to-muted" />
+          )}
+          <img
+            key={src}
+            src={src}
+            alt={alt}
+            loading="eager"
+            onLoad={() => setLoaded(true)}
+            onError={() => setErrored(true)}
+            className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+          />
+        </>
+      )}
+    </div>
+  );
+};
 
 const DescriptionWithImages = ({ text }: { text: string }) => {
   // Split text into image URLs vs text lines while preserving order
@@ -69,7 +102,31 @@ const ProductDetail = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showBoost, setShowBoost] = useState(false);
   const [buying, setBuying] = useState(false);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Build gallery from image_url + any image URLs in description
+  const gallery = useMemo<string[]>(() => {
+    if (!product) return [];
+    const urls: string[] = [];
+    if (product.image_url) urls.push(product.image_url);
+    const desc: string = product.description || "";
+    const found = desc.match(IMAGE_URL_REGEX) || [];
+    for (const u of found) if (!urls.includes(u)) urls.push(u);
+    return urls;
+  }, [product]);
+
+  useEffect(() => {
+    setActiveImage(gallery[0] || null);
+  }, [gallery]);
+
+  // Description text without image URLs (they're shown in the gallery)
+  const descriptionText = useMemo(() => {
+    if (!product?.description) return "";
+    return product.description.replace(IMAGE_URL_REGEX, "").replace(/\n{2,}/g, "\n").trim();
+  }, [product]);
+
+
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -277,17 +334,30 @@ const ProductDetail = () => {
               </div>
             ) : (
               <>
-                {/* Title with product image icon */}
-                <div className="flex items-center gap-3">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-11 h-11 rounded-lg object-cover border border-border shrink-0" />
-                  ) : (
-                    <div className="w-11 h-11 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
-                      <Package className="w-5 h-5 text-muted-foreground" />
+                {/* Gallery */}
+                <div className="space-y-3">
+                  <ProductImage src={activeImage} alt={product.name} />
+                  {gallery.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+                      {gallery.map((url) => {
+                        const active = url === activeImage;
+                        return (
+                          <button
+                            key={url}
+                            type="button"
+                            onClick={() => setActiveImage(url)}
+                            className={`relative shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all snap-start bg-muted ${active ? "border-primary shadow-[0_0_0_2px_hsl(var(--primary)/0.25)]" : "border-border hover:border-primary/60 opacity-80 hover:opacity-100"}`}
+                          >
+                            <img src={url} alt="thumb" loading="lazy" className="w-full h-full object-contain" />
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
-                  <h1 className="font-display text-2xl font-extrabold text-foreground leading-tight">{product.name}</h1>
                 </div>
+
+                {/* Title */}
+                <h1 className="font-display text-xl sm:text-2xl font-extrabold text-foreground leading-tight">{product.name}</h1>
 
                 {/* Info pills */}
                 <div className="flex flex-wrap gap-2">
@@ -307,17 +377,18 @@ const ProductDetail = () => {
 
                 {/* Price */}
                 {user ? (
-                  <div className="text-3xl font-extrabold text-primary">{formatVND(product.price)}</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-primary">{formatVND(product.price)}</div>
                 ) : (
                   <Link to="/dang-nhap" className="inline-block text-base text-primary hover:underline italic">Đăng nhập để xem giá</Link>
                 )}
 
-                {/* Description with images */}
-                {product.description && (
+                {/* Description (text only — images shown in gallery above) */}
+                {descriptionText && (
                   <div className="pt-2">
-                    <DescriptionWithImages text={product.description} />
+                    <DescriptionWithImages text={descriptionText} />
                   </div>
                 )}
+
 
                 {product.created_at && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
