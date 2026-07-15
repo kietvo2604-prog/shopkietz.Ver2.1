@@ -26,6 +26,17 @@ const Header = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const topupRef = useRef<HTMLDivElement>(null);
   const productRef = useRef<HTMLDivElement>(null);
+  const userMenuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const topupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const productTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearHoverTimer = (timer: React.MutableRefObject<ReturnType<typeof setTimeout> | null>) => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+  };
+  const delayClose = (timer: React.MutableRefObject<ReturnType<typeof setTimeout> | null>, setter: (v: boolean) => void) => {
+    clearHoverTimer(timer);
+    timer.current = setTimeout(() => setter(false), 180);
+  };
 
   useEffect(() => {
     supabase.from("shop_settings").select("key,value").in("key", ["shop_logo_url", "shop_hotline", "shop_email"]).then(({ data }) => {
