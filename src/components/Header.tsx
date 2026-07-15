@@ -175,18 +175,20 @@ const Header = () => {
                   <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded-xl shadow-lg py-1 min-w-[220px] z-50 animate-fade-in">
-                    <div className="px-4 py-2.5 border-b border-border">
-                      <p className="text-sm font-semibold text-foreground">{displayName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    </div>
-                    <a href="/trang-ca-nhan" className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted"><User className="w-4 h-4" /> Trang cá nhân</a>
-                    <a href="/lich-su-mua" className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted"><ShoppingCart className="w-4 h-4" /> Đơn hàng của tôi</a>
-                    {isAdmin && (
-                      <a href="/admin" className="flex items-center gap-2 px-4 py-2.5 text-sm text-primary hover:bg-muted"><Shield className="w-4 h-4" /> Admin Panel</a>
-                    )}
-                    <div className="border-t border-border mt-1">
-                      <button onClick={() => { signOut(); setUserMenuOpen(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-destructive hover:bg-muted"><LogOut className="w-4 h-4" /> Đăng xuất</button>
+                  <div className="absolute top-full right-0 pt-2 z-50">
+                    <div className="bg-card border border-border rounded-xl shadow-lg py-1 min-w-[220px] animate-fade-in">
+                      <div className="px-4 py-2.5 border-b border-border">
+                        <p className="text-sm font-semibold text-foreground">{displayName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                      <a href="/trang-ca-nhan" className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted"><User className="w-4 h-4" /> Trang cá nhân</a>
+                      <a href="/lich-su-mua" className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted"><ShoppingCart className="w-4 h-4" /> Đơn hàng của tôi</a>
+                      {isAdmin && (
+                        <a href="/admin" className="flex items-center gap-2 px-4 py-2.5 text-sm text-primary hover:bg-muted"><Shield className="w-4 h-4" /> Admin Panel</a>
+                      )}
+                      <div className="border-t border-border mt-1">
+                        <button onClick={() => { signOut(); setUserMenuOpen(false); }} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-destructive hover:bg-muted"><LogOut className="w-4 h-4" /> Đăng xuất</button>
+                      </div>
                     </div>
                   </div>
                 )}
