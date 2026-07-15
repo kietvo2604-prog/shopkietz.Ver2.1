@@ -269,7 +269,7 @@ const Header = () => {
                 </div>
               )}
             </div>
-            <div className="relative" ref={topupRef} onMouseEnter={() => setTopupOpen(true)} onMouseLeave={() => setTopupOpen(false)}>
+            <div className="relative" ref={topupRef} onMouseEnter={() => { clearHoverTimer(topupTimer); setTopupOpen(true); }} onMouseLeave={() => delayClose(topupTimer, setTopupOpen)}>
               <button
                 onClick={() => setTopupOpen(!topupOpen)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all ${isTopupActive ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-primary/5 hover:text-primary"}`}
