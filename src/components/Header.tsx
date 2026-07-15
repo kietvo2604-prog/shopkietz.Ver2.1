@@ -225,7 +225,7 @@ const Header = () => {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
           <nav className={`${mobileOpen ? "flex flex-col w-full" : "hidden"} md:flex md:flex-row md:items-center gap-1`}>
             <NavPill icon={Home} label="Trang chủ" path="/" active={currentPath === "/"} />
-            <div className="relative" ref={productRef} onMouseEnter={() => setProductOpen(true)} onMouseLeave={() => setProductOpen(false)}>
+            <div className="relative" ref={productRef} onMouseEnter={() => { clearHoverTimer(productTimer); setProductOpen(true); }} onMouseLeave={() => delayClose(productTimer, setProductOpen)}>
               <button
                 onClick={() => setProductOpen(!productOpen)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all ${currentPath === "/" && new URLSearchParams(location.search).get("cat") === "all" ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-primary/5 hover:text-primary"}`}
