@@ -1,9 +1,11 @@
-import { Search, ShoppingCart, Heart, MessageCircle, ChevronDown, LogOut, User, Shield, Globe, Coins, Package, CreditCard, Newspaper, Home, Phone, Mail, LayoutGrid, Menu, X, HelpCircle, FileText } from "lucide-react";
+import { Search, ShoppingCart, Heart, MessageCircle, ChevronDown, LogOut, User, Shield, Globe, Coins, Package, CreditCard, Newspaper, Home, Phone, Mail, LayoutGrid, Menu, X, HelpCircle, FileText, Gamepad2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import ThemeToggle from "./ThemeToggle";
+
+type Category = { id: string; name: string; slug: string; image_url: string | null; };
 
 const Header = () => {
   const { user, signOut } = useAuth();
