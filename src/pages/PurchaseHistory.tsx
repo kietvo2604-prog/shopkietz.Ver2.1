@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { ShoppingBag, Loader2, AlertCircle, Eye, Download, Trash2, Search, X } from "lucide-react";
+import { Loader2, AlertCircle, Search } from "lucide-react";
 
 type Order = {
   id: string;
@@ -19,20 +19,37 @@ type Order = {
 
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
+// Hàm format ngày giờ giống định dạng trong ảnh (HH:mm:ss DD/MM/YYYY)
+const formatDateTime = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const pad = (num: number) => String(num).padStart(2, '0');
+  
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  const seconds = pad(d.getSeconds());
+  const day = pad(d.getDate());
+  const month = pad(d.getMonth() + 1);
+  const year = d.getFullYear();
+
+  return `${hours}:${minutes}:${seconds} ${day}/${month}/${year}`;
+};
+
 const PurchaseHistory = () => {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchCode, setSearchCode] = useState("");
-  const [searchAccount, setSearchAccount] = useState("");
-  const [perPage, setPerPage] = useState(10);
-  const [sortDate, setSortDate] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     if (!user) return;
     const fetchOrders = async () => {
       setLoading(true);
-      const { data } = await supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
       setOrders((data as Order[]) || []);
       setLoading(false);
     };
@@ -55,95 +72,177 @@ const PurchaseHistory = () => {
     );
   }
 
-  let filtered = orders;
-  if (searchCode.trim()) filtered = filtered.filter(o => o.order_code?.toLowerCase().includes(searchCode.toLowerCase()));
-  if (searchAccount.trim()) filtered = filtered.filter(o => o.product_name.toLowerCase().includes(searchAccount.toLowerCase()));
+  // Đếm số lượng đơn hàng theo từng trạng thái để hiển thị lên các Tab
+  const countByStatus = (status: string) => orders.filter(o => o.status === status).length;
 
-  const displayed = filtered.slice(0, perPage);
+  // Lọc dữ liệu theo Search và theo Tab đang chọn
+  let filtered = orders;
+  if (activeTab !== "all") {
+    filtered = filtered.filter(o => o.status === activeTab);
+  }
+  if (searchQuery.trim()) {
+    filtered = filtered.filter(
+      o =>
+        o.order_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar /><Header />
-      <main className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-        <div className="bg-gradient-to-r from-destructive to-neon-orange rounded-xl p-4">
-          <h1 className="font-display text-lg md:text-xl font-bold text-white flex items-center gap-2">
-            <ShoppingBag className="w-6 h-6" /> LỊCH SỬ ĐƠN HÀNG
-          </h1>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            <input value={searchCode} onChange={e => setSearchCode(e.target.value)} placeholder="Mã đơn hàng"
-              className="bg-muted border border-border rounded-lg py-2 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary w-40" />
-            <input value={searchAccount} onChange={e => setSearchAccount(e.target.value)} placeholder="Sản phẩm"
-              className="bg-muted border border-border rounded-lg py-2 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary w-40" />
-            <button onClick={() => {}} className="flex items-center gap-1.5 px-4 py-2 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90">
-              <Search className="w-4 h-4" /> Tìm kiếm
-            </button>
-            <button onClick={() => { setSearchCode(""); setSearchAccount(""); }} className="flex items-center gap-1.5 px-4 py-2 bg-muted text-muted-foreground border border-border rounded-lg text-sm font-semibold hover:bg-border">
-              <Trash2 className="w-4 h-4" /> Bỏ lọc
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              SHOW: <select value={perPage} onChange={e => setPerPage(Number(e.target.value))} className="bg-muted border border-border rounded px-2 py-1 text-foreground text-sm">
-                <option value={10}>10</option><option value={25}>25</option><option value={50}>50</option>
-              </select>
+    <div className="min-h-screen bg-[#f4f6f9]">
+      <TopBar />
+      <Header />
+      
+      <main className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          
+          {/* Tiêu đề trang */}
+          <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <span className="p-1.5 bg-[#00a2e8] text-white rounded">📋</span> Đơn hàng của tôi
+              </h1>
+              <p className="text-xs text-gray-500 mt-1">Tổng cộng {orders.length} đơn hàng</p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              SHORT BY DATE: <select value={sortDate} onChange={e => setSortDate(e.target.value)} className="bg-muted border border-border rounded px-2 py-1 text-foreground text-sm">
-                <option value="all">Tất cả</option>
-              </select>
+
+            {/* Thanh tìm kiếm bên phải tiêu đề */}
+            <div className="flex items-center">
+              <input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Tìm mã đơn hàng, tên sản phẩm"
+                className="border border-gray-300 rounded-l-md px-3 py-1.5 text-sm w-64 focus:outline-none focus:border-[#00a2e8]"
+              />
+              <button className="bg-[#00a2e8] text-white px-4 py-1.5 rounded-r-md text-sm font-medium hover:bg-[#008cc8] transition-colors flex items-center gap-1">
+                <Search className="w-4 h-4" /> Tìm kiếm
+              </button>
             </div>
           </div>
 
-          {/* Table */}
+          {/* Hàng các nút Tabs Trạng thái đơn hàng */}
+          <div className="p-4 bg-gray-50/50 border-b border-gray-100 flex flex-wrap gap-2">
+            <button 
+              onClick={() => setActiveTab("all")}
+              className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${activeTab === "all" ? "bg-[#00a2e8] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            >
+              Tất cả <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === "all" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"}`}>{orders.length}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("pending")}
+              className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${activeTab === "pending" ? "bg-[#00a2e8] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            >
+              Chờ xử lý <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === "pending" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"}`}>{countByStatus("pending")}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("processing")}
+              className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${activeTab === "processing" ? "bg-[#00a2e8] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            >
+              Đang xử lý <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === "processing" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"}`}>{countByStatus("processing")}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${activeTab === "completed" ? "bg-[#00a2e8] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            >
+              Hoàn thành <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === "completed" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"}`}>{countByStatus("completed")}</span>
+            </button>
+            <button 
+              onClick={() => setActiveTab("cancelled")}
+              className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${activeTab === "cancelled" ? "bg-[#00a2e8] text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            >
+              Đã hủy <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${activeTab === "cancelled" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"}`}>{countByStatus("cancelled")}</span>
+            </button>
+          </div>
+
+          {/* Bảng danh sách đơn hàng */}
           {loading ? (
-            <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-[#00a2e8]" /></div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left px-3 py-2.5 font-semibold text-foreground italic">Thao tác</th>
-                    <th className="text-left px-3 py-2.5 font-semibold text-foreground italic">Mã đơn hàng</th>
-                    <th className="text-left px-3 py-2.5 font-semibold text-foreground italic">Sản phẩm</th>
-                    <th className="text-center px-3 py-2.5 font-semibold text-foreground italic">Số lượng</th>
-                    <th className="text-right px-3 py-2.5 font-semibold text-foreground italic">Thanh toán</th>
+                  <tr className="bg-[#00a2e8] text-white font-medium">
+                    <th className="text-left px-4 py-3 border-r border-[#008cc8] w-24">CHI TIẾT</th>
+                    <th className="text-left px-4 py-3 border-r border-[#008cc8]">SẢN PHẨM</th>
+                    <th className="text-left px-4 py-3 border-r border-[#008cc8] w-28">GIÁ</th>
+                    <th className="text-left px-4 py-3 border-r border-[#008cc8] w-32">TRẠNG THÁI</th>
+                    <th className="text-left px-4 py-3 border-r border-[#008cc8] w-40">MÃ ĐƠN HÀNG</th>
+                    <th className="text-left px-4 py-3 w-44">THỜI GIAN</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {displayed.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Chưa có đơn hàng nào.</td></tr>
-                  ) : displayed.map(o => (
-                    <tr key={o.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-1">
-                          <Link to={`/don-hang/${o.id}`} className="px-2 py-1 bg-primary/80 text-primary-foreground rounded text-xs font-bold hover:bg-primary transition-colors">
-                            👁 View
-                          </Link>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 font-mono text-foreground text-xs">{o.order_code || "—"}</td>
-                      <td className="px-3 py-2.5 text-foreground max-w-[300px] truncate">{o.product_name}</td>
-                      <td className="px-3 py-2.5 text-center">
-                        <span className="inline-flex items-center justify-center w-6 h-6 bg-primary/10 text-primary text-xs font-bold rounded-full border border-primary/30">1</span>
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <span className="px-2 py-0.5 bg-destructive/10 text-destructive text-xs font-bold rounded border border-destructive/30">{formatVND(o.price)}</span>
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-12 text-gray-400 bg-white">
+                        Không tìm thấy đơn hàng nào phù hợp.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filtered.map((o) => (
+                      <tr key={o.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors bg-white">
+                        {/* Cột Chi tiết */}
+                        <td className="px-4 py-3 text-center border-r border-gray-100">
+                          <Link to={`/don-hang/${o.id}`} className="text-[#00a2e8] hover:underline font-medium text-xs">
+                            Xem chi tiết
+                          </Link>
+                        </td>
+                        
+                        {/* Cột Sản phẩm kèm số lượng x1 */}
+                        <td className="px-4 py-3 text-gray-700 font-medium border-r border-gray-100">
+                          <div className="flex justify-between items-center">
+                            <span>{o.product_name}</span>
+                            <span className="text-xs text-gray-400 mr-2">x1</span>
+                          </div>
+                        </td>
+                        
+                        {/* Cột Giá */}
+                        <td className="px-4 py-3 font-semibold text-gray-800 border-r border-gray-100">
+                          {formatVND(o.price)}
+                        </td>
+                        
+                        {/* Cột Trạng thái */}
+                        <td className="px-4 py-3 border-r border-gray-100">
+                          {o.status === "completed" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-[#28a745] font-medium">
+                              <span className="w-2 h-2 rounded-full bg-[#28a745]"></span> Hoàn thành
+                            </span>
+                          )}
+                          {o.status === "pending" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-amber-500 font-medium">
+                              <span className="w-2 h-2 rounded-full bg-amber-500"></span> Chờ xử lý
+                            </span>
+                          )}
+                          {o.status === "processing" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-blue-500 font-medium">
+                              <span className="w-2 h-2 rounded-full bg-blue-500"></span> Đang xử lý
+                            </span>
+                          )}
+                          {o.status === "cancelled" && (
+                            <span className="inline-flex items-center gap-1 text-xs text-red-500 font-medium">
+                              <span className="w-2 h-2 rounded-full bg-red-500"></span> Đã hủy
+                            </span>
+                          )}
+                        </td>
+                        
+                        {/* Cột Mã đơn hàng */}
+                        <td className="px-4 py-3 font-mono text-xs text-gray-600 border-r border-gray-100">
+                          {o.order_code || "—"}
+                        </td>
+                        
+                        {/* Cột Thời gian mua */}
+                        <td className="px-4 py-3 text-xs text-gray-600">
+                          {formatDateTime(o.created_at)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           )}
-
-          <p className="text-sm text-muted-foreground">Showing {perPage} of {filtered.length} Results</p>
+          
         </div>
       </main>
+
       <Footer />
     </div>
   );
