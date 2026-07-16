@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShoppingCart, Eye, Loader2, CheckCircle2, Package } from "lucide-react";
+import { ShoppingCart, Eye, Loader2, CheckCircle2, Package, ShieldAlert, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +37,8 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   const [purchasedOrderId, setPurchasedOrderId] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [showBoost, setShowBoost] = useState(false);
+  const [showInsufficientBalance, setShowInsufficientBalance] = useState(false);
+  const [insufficientProduct, setInsufficientProduct] = useState({ name: "", price: "" });
   const isBoost = product_type === "boost";
 
   // Auto-generate short tags from description lines (max 3 items)
@@ -45,6 +47,16 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
     .map((l) => l.trim())
     .filter(Boolean)
     .slice(0, 3);
+
+  // Kiểm tra lỗi số dư không đủ
+  const handleInsufficientBalance = (errorMsg: string) => {
+    if (errorMsg.includes("không đủ") || errorMsg.includes("Số dư")) {
+      setInsufficientProduct({ name, price });
+      setShowInsufficientBalance(true);
+      return true;
+    }
+    return false;
+  };
 
   const handleBoostBuy = async (username: string, password: string, note: string) => {
     if (!user || !id) return;
@@ -58,9 +70,20 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       p_username: username, p_password: password, p_note: note,
     });
     setBuying(false);
-    if (error) { toast({ title: "Lỗi", description: error.message, variant: "destructive" }); return; }
+    
+    if (error) { 
+      if (handleInsufficientBalance(error.message)) return;
+      toast({ title: "Lỗi", description: error.message, variant: "destructive" }); 
+      return; 
+    }
+    
     const r = data as any;
-    if (!r?.success) { toast({ title: "❌ " + (r?.error || "Đặt thất bại"), variant: "destructive" }); return; }
+    if (!r?.success) { 
+      if (r?.error && handleInsufficientBalance(r.error)) return;
+      toast({ title: "❌ " + (r?.error || "Đặt thất bại"), variant: "destructive" }); 
+      return; 
+    }
+    
     setShowBoost(false);
     toast({ title: "✅ Đã đặt dịch vụ cày thuê!", description: `Mã đơn: ${r.order_code}` });
     window.location.href = "/lich-su-cay-thue";
@@ -80,10 +103,20 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       p_discount_code: discountCode || null,
     });
 
-    if (error) { toast({ title: "Lỗi", description: error.message, variant: "destructive" }); setBuying(false); return; }
+    if (error) { 
+      if (handleInsufficientBalance(error.message)) { setBuying(false); return; }
+      toast({ title: "Lỗi", description: error.message, variant: "destructive" }); 
+      setBuying(false); 
+      return; 
+    }
 
     const result = data as any;
-    if (!result.success) { toast({ title: "❌ " + result.error, variant: "destructive" }); setBuying(false); return; }
+    if (!result.success) { 
+      if (result.error && handleInsufficientBalance(result.error)) { setBuying(false); return; }
+      toast({ title: "❌ " + result.error, variant: "destructive" }); 
+      setBuying(false); 
+      return; 
+    }
 
     setBuying(false);
     setPurchasedQuantity(result.quantity || quantity);
@@ -174,6 +207,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         </div>
       </div>
 
+      {/* Dialog xác nhận mua hàng */}
       <PurchaseConfirmDialog
         open={showConfirm}
         onOpenChange={setShowConfirm}
@@ -185,6 +219,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         buying={buying}
       />
 
+      {/* Dialog đặt cày thuê */}
       <BoostPurchaseDialog
         open={showBoost}
         onOpenChange={setShowBoost}
@@ -194,6 +229,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         buying={buying}
       />
 
+      {/* Dialog mua hàng thành công */}
       {showAccDialog && (
         <Dialog open={showAccDialog} onOpenChange={setShowAccDialog}>
           <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
@@ -233,6 +269,71 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
           </DialogContent>
         </Dialog>
       )}
+
+      {/* ⚠️ Dialog SỐ DƯ KHÔNG ĐỦ - GIỮA MÀN HÌNH */}
+      <Dialog open={showInsufficientBalance} onOpenChange={setShowInsufficientBalance}>
+        <DialogContent className="sm:max-w-md max-w-[95%] rounded-2xl border-2 border-red-500/30 shadow-2xl shadow-red-500/10 p-0 overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-red-500/20 to-red-600/10 p-6 pb-4 border-b border-red-500/20">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 animate-pulse">
+                <ShieldAlert className="w-8 h-8 text-red-500" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-bold text-red-500 flex items-center gap-2">
+                  ⚠️ Số dư không đủ
+                </DialogTitle>
+                <DialogDescription className="text-base text-muted-foreground mt-1">
+                  Vui lòng nạp thêm tiền để tiếp tục mua hàng
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          {/* Nội dung */}
+          <div className="p-6 space-y-4">
+            <div className="bg-muted/50 rounded-xl p-4 border border-border">
+              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2 flex items-center gap-1">
+                🛍️ Thông tin sản phẩm
+              </p>
+              <div className="flex justify-between items-center py-1.5 border-b border-border/50">
+                <span className="text-sm text-muted-foreground">Sản phẩm</span>
+                <span className="text-sm font-semibold text-foreground">{insufficientProduct.name}</span>
+              </div>
+              <div className="flex justify-between items-center py-1.5">
+                <span className="text-sm text-muted-foreground">Giá</span>
+                <span className="text-lg font-bold text-primary">{insufficientProduct.price}</span>
+              </div>
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+              <p className="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center gap-2">
+                💡 Bạn có thể nạp tiền qua <span className="font-bold">SePay</span> hoặc <span className="font-bold">thẻ cào</span> để tiếp tục mua hàng.
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <DialogFooter className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setShowInsufficientBalance(false)}
+              className="w-full sm:w-auto px-6 py-3 bg-muted text-foreground rounded-xl text-sm font-semibold hover:bg-border transition-all"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              onClick={() => {
+                setShowInsufficientBalance(false);
+                window.location.href = "/nap-tien";
+              }}
+              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+            >
+              <Wallet className="w-4 h-4" />
+              Nạp tiền ngay
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
