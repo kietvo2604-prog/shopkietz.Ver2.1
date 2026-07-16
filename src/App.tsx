@@ -14,6 +14,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import OrderDetail from "./pages/OrderDetail";
 import ProductDetail from "./pages/ProductDetail";
+import CategoryPage from "./pages/CategoryPage";
 import FAQ from "./pages/FAQ";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/don-hang/:id" element={<OrderDetail />} />
             <Route path="/san-pham/:id" element={<ProductDetail />} />
+            <Route path="/danh-muc/:slug" element={<CategoryPage />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/trang-ca-nhan" element={<Profile />} />
             <Route path="/quy-dinh-nap-the" element={<CardRegulations />} />

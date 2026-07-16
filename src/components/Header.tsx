@@ -250,7 +250,7 @@ const Header = () => {
                         {categories.map((cat) => (
                           <button
                             key={cat.id}
-                            onClick={() => { navigate(`/?cat=${cat.slug}`); setProductOpen(false); }}
+                            onClick={() => { navigate(`/danh-muc/${cat.slug}`); setProductOpen(false); }}
                             className="flex items-center gap-3 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg text-left"
                           >
                             {cat.image_url ? (
@@ -265,7 +265,7 @@ const Header = () => {
                     )}
                     <div className="border-t border-border mt-1 pt-1">
                       <button
-                        onClick={() => { navigate("/?cat=all"); setProductOpen(false); }}
+                        onClick={() => { navigate("/"); setProductOpen(false); }}
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm font-semibold text-primary hover:bg-muted rounded-lg"
                       >
                         <LayoutGrid className="w-4 h-4" /> Xem tất cả sản phẩm
