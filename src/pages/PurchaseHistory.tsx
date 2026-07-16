@@ -19,7 +19,6 @@ type Order = {
 
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
-// Định dạng ngày giờ: HH:mm:ss DD/MM/YYYY
 const formatDateTime = (dateStr: string) => {
   const d = new Date(dateStr);
   const pad = (num: number) => String(num).padStart(2, '0');
@@ -72,10 +71,8 @@ const PurchaseHistory = () => {
     );
   }
 
-  // Đếm số lượng đơn theo từng trạng thái
   const countStatus = (status: string) => orders.filter(o => o.status === status).length;
 
-  // Lọc dữ liệu theo tab và theo thanh tìm kiếm
   let filtered = orders;
   if (activeTab !== "all") {
     filtered = filtered.filter(o => o.status === activeTab);
@@ -96,7 +93,7 @@ const PurchaseHistory = () => {
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           
-          {/* Header Đơn hàng */}
+          {/* Header */}
           <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#00a2e8] text-white rounded-lg">
@@ -122,7 +119,7 @@ const PurchaseHistory = () => {
             </div>
           </div>
 
-          {/* Hàng Tabs phân loại Trạng thái */}
+          {/* Hàng Tabs Trạng thái */}
           <div className="px-5 py-3 bg-gray-50/50 border-b border-gray-100 flex flex-wrap gap-2">
             {[
               { id: "all", label: "Tất cả", count: orders.length },
@@ -189,13 +186,13 @@ const PurchaseHistory = () => {
                           </Link>
                         </td>
                         
-                        {/* Cột Sản phẩm kèm số lượng x1 */}
+                        {/* Cột Sản phẩm kèm ô Số lượng nền màu xanh */}
                         <td className="px-5 py-4 border-r border-gray-100 text-gray-800 font-medium">
                           <div className="flex justify-between items-center gap-2">
                             <span className="truncate max-w-[320px]" title={o.product_name}>
                               {o.product_name}
                             </span>
-                            <span className="text-xs text-gray-400 font-mono bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-[#00a2e8] font-bold bg-[#e6f6fd] px-2 py-0.5 rounded border border-[#bce4f7]">
                               x1
                             </span>
                           </div>
