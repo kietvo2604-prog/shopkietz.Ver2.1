@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShoppingCart, Eye, Loader2, CheckCircle2, Package, ShieldAlert, Wallet } from "lucide-react";
+import { ShoppingCart, Eye, Loader2, CheckCircle2, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,22 +37,43 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   const [purchasedOrderId, setPurchasedOrderId] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [showBoost, setShowBoost] = useState(false);
-  const [showInsufficientBalance, setShowInsufficientBalance] = useState(false);
-  const [insufficientProduct, setInsufficientProduct] = useState({ name: "", price: "" });
   const isBoost = product_type === "boost";
 
-  // Auto-generate short tags from description lines (max 3 items)
   const tags = description
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean)
     .slice(0, 3);
 
-  // Kiểm tra lỗi số dư không đủ
+  // ✅ XỬ LÝ LỖI SỐ DƯ KHÔNG ĐỦ - GIỐNG Y ẢNH
   const handleInsufficientBalance = (errorMsg: string) => {
     if (errorMsg.includes("không đủ") || errorMsg.includes("Số dư")) {
-      setInsufficientProduct({ name, price });
-      setShowInsufficientBalance(true);
+      toast({
+        title: "Số dư không đủ, vui lòng nạp thêm",
+        description: (
+          <div className="mt-2 flex flex-col gap-2">
+            <div className="bg-muted/50 rounded-lg p-3 border border-border">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Sản phẩm:</span>
+                <span className="font-semibold text-foreground">{name}</span>
+              </div>
+              <div className="flex justify-between text-sm mt-1">
+                <span className="text-muted-foreground">Giá:</span>
+                <span className="font-bold text-primary">{price}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => window.location.href = "/nap-tien"}
+              className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
+              Nạp ngay
+            </button>
+          </div>
+        ),
+        variant: "destructive",
+        duration: 6000,
+        className: "min-w-[320px] max-w-[400px] !rounded-2xl !shadow-2xl !border-2 !border-red-500/30 !p-6",
+      });
       return true;
     }
     return false;
@@ -70,20 +91,17 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       p_username: username, p_password: password, p_note: note,
     });
     setBuying(false);
-    
     if (error) { 
       if (handleInsufficientBalance(error.message)) return;
       toast({ title: "Lỗi", description: error.message, variant: "destructive" }); 
       return; 
     }
-    
     const r = data as any;
     if (!r?.success) { 
       if (r?.error && handleInsufficientBalance(r.error)) return;
       toast({ title: "❌ " + (r?.error || "Đặt thất bại"), variant: "destructive" }); 
       return; 
     }
-    
     setShowBoost(false);
     toast({ title: "✅ Đã đặt dịch vụ cày thuê!", description: `Mã đơn: ${r.order_code}` });
     window.location.href = "/lich-su-cay-thue";
@@ -128,7 +146,6 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   return (
     <>
       <div className={`group relative flex flex-col bg-card border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isBoost ? "border-accent/50" : "border-border hover:border-primary/60"}`}>
-        {/* Image */}
         <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-muted to-background">
           {imageUrl ? (
             <img src={imageUrl} alt={name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -137,64 +154,42 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
               <Package className="w-16 h-16 opacity-30" />
             </div>
           )}
-
-          {/* Stock badge */}
           <div className="absolute top-2 left-2">
             <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold shadow-md ${isBoost ? "bg-accent text-accent-foreground" : stock > 0 ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"}`}>
               {isBoost ? "Cày thuê" : stock > 0 ? `Còn ${stock}` : "Hết hàng"}
             </span>
           </div>
-
-          {/* Country flag */}
           <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/90 backdrop-blur flex items-center justify-center text-sm shadow-md">
             🇻🇳
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex flex-col flex-1 p-3 space-y-2.5">
-          {/* Name */}
           <h3 className="font-bold text-foreground text-sm leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
             {name}
           </h3>
-
-          {/* Tags */}
           <div className="flex flex-wrap gap-1.5 min-h-[22px]">
             {tags.map((t, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary text-[11px] font-semibold leading-tight"
-              >
+              <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-primary text-[11px] font-semibold leading-tight">
                 <CheckCircle2 className="w-3 h-3" />
                 <span className="truncate max-w-[140px]">{t}</span>
               </span>
             ))}
           </div>
-
-          {/* Price */}
           <div className="flex items-baseline justify-between pt-1 border-t border-border">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Giá bán</span>
             <span className="text-lg font-extrabold text-yellow-500 leading-none">
               {user ? price : "Đăng nhập"}
             </span>
           </div>
-
-          {/* Actions */}
           <div className="grid grid-cols-2 gap-2 pt-1 mt-auto">
             {id ? (
-              <Link
-                to={`/san-pham/${id}`}
-                className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-muted border border-border hover:bg-border transition-colors text-xs font-semibold text-foreground"
-              >
+              <Link to={`/san-pham/${id}`} className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-muted border border-border hover:bg-border transition-colors text-xs font-semibold text-foreground">
                 <Eye className="w-3.5 h-3.5" /> Chi tiết
               </Link>
             ) : <span />}
             {user ? (
-              <button
-                onClick={() => isBoost ? setShowBoost(true) : setShowConfirm(true)}
-                disabled={buying || (!isBoost && stock <= 0)}
-                className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-bold disabled:opacity-50"
-              >
+              <button onClick={() => isBoost ? setShowBoost(true) : setShowConfirm(true)} disabled={buying || (!isBoost && stock <= 0)} className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-xs font-bold disabled:opacity-50">
                 {buying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShoppingCart className="w-3.5 h-3.5" />}
                 {buying ? "..." : !isBoost && stock <= 0 ? "Hết" : isBoost ? "Đặt cày" : "Mua ngay"}
               </button>
@@ -207,7 +202,6 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         </div>
       </div>
 
-      {/* Dialog xác nhận mua hàng */}
       <PurchaseConfirmDialog
         open={showConfirm}
         onOpenChange={setShowConfirm}
@@ -219,7 +213,6 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         buying={buying}
       />
 
-      {/* Dialog đặt cày thuê */}
       <BoostPurchaseDialog
         open={showBoost}
         onOpenChange={setShowBoost}
@@ -229,7 +222,6 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         buying={buying}
       />
 
-      {/* Dialog mua hàng thành công */}
       {showAccDialog && (
         <Dialog open={showAccDialog} onOpenChange={setShowAccDialog}>
           <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
@@ -253,87 +245,19 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
               </div>
             </div>
             <DialogFooter className="flex flex-col sm:flex-row gap-2">
-              <Link to={`/don-hang/${purchasedOrderId}`} onClick={() => setShowAccDialog(false)}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+              <Link to={`/don-hang/${purchasedOrderId}`} onClick={() => setShowAccDialog(false)} className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
                 <Eye className="w-4 h-4" /> Xem chi tiết
               </Link>
-              <button onClick={() => { setShowAccDialog(false); window.location.reload(); }}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+              <button onClick={() => { setShowAccDialog(false); window.location.reload(); }} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
                 Mua thêm
               </button>
-              <Link to="/lich-su-mua" onClick={() => setShowAccDialog(false)}
-                className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold hover:bg-border transition-colors text-center">
+              <Link to="/lich-su-mua" onClick={() => setShowAccDialog(false)} className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold hover:bg-border transition-colors text-center">
                 Lịch sử giao dịch
               </Link>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
-
-      {/* ⚠️ Dialog SỐ DƯ KHÔNG ĐỦ - GIỮA MÀN HÌNH */}
-      <Dialog open={showInsufficientBalance} onOpenChange={setShowInsufficientBalance}>
-        <DialogContent className="sm:max-w-md max-w-[95%] rounded-2xl border-2 border-red-500/30 shadow-2xl shadow-red-500/10 p-0 overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-red-500/20 to-red-600/10 p-6 pb-4 border-b border-red-500/20">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 animate-pulse">
-                <ShieldAlert className="w-8 h-8 text-red-500" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold text-red-500 flex items-center gap-2">
-                  ⚠️ Số dư không đủ
-                </DialogTitle>
-                <DialogDescription className="text-base text-muted-foreground mt-1">
-                  Vui lòng nạp thêm tiền để tiếp tục mua hàng
-                </DialogDescription>
-              </div>
-            </div>
-          </div>
-
-          {/* Nội dung */}
-          <div className="p-6 space-y-4">
-            <div className="bg-muted/50 rounded-xl p-4 border border-border">
-              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-2 flex items-center gap-1">
-                🛍️ Thông tin sản phẩm
-              </p>
-              <div className="flex justify-between items-center py-1.5 border-b border-border/50">
-                <span className="text-sm text-muted-foreground">Sản phẩm</span>
-                <span className="text-sm font-semibold text-foreground">{insufficientProduct.name}</span>
-              </div>
-              <div className="flex justify-between items-center py-1.5">
-                <span className="text-sm text-muted-foreground">Giá</span>
-                <span className="text-lg font-bold text-primary">{insufficientProduct.price}</span>
-              </div>
-            </div>
-
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-              <p className="text-sm text-amber-600 dark:text-amber-400 font-medium flex items-center gap-2">
-                💡 Bạn có thể nạp tiền qua <span className="font-bold">SePay</span> hoặc <span className="font-bold">thẻ cào</span> để tiếp tục mua hàng.
-              </p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <DialogFooter className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => setShowInsufficientBalance(false)}
-              className="w-full sm:w-auto px-6 py-3 bg-muted text-foreground rounded-xl text-sm font-semibold hover:bg-border transition-all"
-            >
-              Hủy bỏ
-            </button>
-            <button
-              onClick={() => {
-                setShowInsufficientBalance(false);
-                window.location.href = "/nap-tien";
-              }}
-              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20"
-            >
-              <Wallet className="w-4 h-4" />
-              Nạp tiền ngay
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
