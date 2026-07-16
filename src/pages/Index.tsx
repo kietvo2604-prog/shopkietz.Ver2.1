@@ -1,50 +1,29 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import WelcomePanel from "@/components/WelcomePanel";
-import CategoryTabs from "@/components/CategoryTabs";
-import ProductSection from "@/components/ProductSection";
 import TopUpGuide from "@/components/TopUpGuide";
 import RecentPurchases from "@/components/RecentPurchases";
 import RecentTopups from "@/components/RecentTopups";
 import Footer from "@/components/Footer";
 import WelcomePopup from "@/components/WelcomePopup";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Package, ArrowRight, Flame } from "lucide-react";
 
+type Category = { id: string; name: string; slug: string; image_url: string | null; sort_order: number };
+type Product = { id: string; name: string; price: number; category: string; image_url: string | null };
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  description: string | null;
-  category: string;
-  image_url: string | null;
-  product_type?: string;
-}
-
-type Category = { id: string; name: string; slug: string; image_url: string | null };
+const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const Index = () => {
-  const [searchParams] = useSearchParams();
-  const [activeCategory, setActiveCategory] = useState(searchParams.get("cat") || "all");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const s = searchParams.get("search");
-    if (s) setSearchQuery(s);
-    const c = searchParams.get("cat");
-    if (c) setActiveCategory(c);
-  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
       const [prodRes, catRes] = await Promise.all([
-        supabase.from("products").select("*").eq("status", "active").order("created_at", { ascending: false }),
+        supabase.from("products").select("id, name, price, category, image_url").eq("status", "active"),
         supabase.from("categories").select("*").order("sort_order"),
       ]);
       setProducts((prodRes.data as Product[]) || []);
@@ -54,20 +33,18 @@ const Index = () => {
     fetchData();
   }, []);
 
-  const slugMap: Record<string, string> = {};
-  const imgMap: Record<string, string | null> = {};
-  categories.forEach(c => { slugMap[c.name] = c.slug; imgMap[c.name] = c.image_url; });
-
-  const filtered = searchQuery.trim()
-    ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
-    : products;
-
-  const grouped: Record<string, Product[]> = {};
-  filtered.forEach((p) => {
-    if (!grouped[p.category]) grouped[p.category] = [];
-    grouped[p.category].push(p);
-  });
-
+  // Build price range + representative image per category
+  const catStats = useMemo(() => {
+    const map: Record<string, { count: number; min: number; max: number; image: string | null }> = {};
+    products.forEach((p) => {
+      const s = (map[p.category] ||= { count: 0, min: p.price, max: p.price, image: p.image_url });
+      s.count += 1;
+      if (p.price < s.min) s.min = p.price;
+      if (p.price > s.max) s.max = p.price;
+      if (!s.image && p.image_url) s.image = p.image_url;
+    });
+    return map;
+  }, [products]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -77,39 +54,67 @@ const Index = () => {
       <main className="flex-1 container mx-auto px-4 py-6 space-y-8">
         <WelcomePanel />
 
-        <div className="overflow-x-auto pb-1">
-          <CategoryTabs activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+        {/* Section header */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Flame className="w-5 h-5 text-primary" />
+            <h2 className="font-display text-xl sm:text-2xl font-extrabold text-foreground">Danh mục sản phẩm</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">Chọn danh mục để xem sản phẩm</p>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            {searchQuery ? `Không tìm thấy sản phẩm "${searchQuery}"` : "Chưa có sản phẩm nào."}
-          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">Chưa có danh mục nào.</div>
         ) : (
-          Object.entries(grouped).map(([category, prods]) => {
-            const catSlug = slugMap[category] || category.toLowerCase().replace(/\s+/g, "");
-            if (activeCategory !== "all" && activeCategory !== catSlug) return null;
-            return (
-              <ProductSection
-                key={category}
-                title={category.toUpperCase()}
-                imageUrl={imgMap[category] || undefined}
-                products={prods.map((p) => ({
-                  id: p.id,
-                  name: p.name,
-                  price: p.price.toLocaleString("vi-VN") + "đ",
-                  numericPrice: p.price,
-                  stock: p.stock,
-                  description: p.description || "",
-                  category: p.category,
-                  imageUrl: p.image_url || undefined,
-                  product_type: p.product_type,
-                }))}
-              />
-            );
-          })
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {categories.map((cat) => {
+              const stats = catStats[cat.name];
+              const image = cat.image_url || stats?.image || null;
+              const priceLabel = stats && stats.count > 0
+                ? stats.min === stats.max
+                  ? formatVND(stats.min)
+                  : `${formatVND(stats.min)} ~ ${formatVND(stats.max)}`
+                : "Chưa có sản phẩm";
+              return (
+                <Link
+                  key={cat.id}
+                  to={`/danh-muc/${cat.slug}`}
+                  className="group relative flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary/60"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-muted to-background flex items-center justify-center">
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={cat.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <Package className="w-20 h-20 text-muted-foreground/40" />
+                    )}
+                    {stats && stats.count > 0 && (
+                      <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold shadow-md bg-primary text-primary-foreground">
+                        {stats.count} sản phẩm
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col flex-1 p-3 space-y-2">
+                    <h3 className="font-bold text-foreground text-sm leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors uppercase">
+                      {cat.name}
+                    </h3>
+                    <div className="flex items-baseline justify-between pt-1 border-t border-border">
+                      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Giá</span>
+                      <span className="text-base font-extrabold text-yellow-500 leading-none">{priceLabel}</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-1.5 mt-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold group-hover:bg-primary/90 transition-colors">
+                      Xem sản phẩm <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         )}
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -124,6 +129,5 @@ const Index = () => {
     </div>
   );
 };
-
 
 export default Index;
