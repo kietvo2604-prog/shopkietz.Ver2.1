@@ -245,12 +245,16 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopBar /><Header />
-      <main className="container mx-auto px-4 py-8 max-w-3xl space-y-6">
+      <main className="container mx-auto px-4 py-8 space-y-6">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="w-4 h-4" /> Quay lại cửa hàng
         </Link>
 
-        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg animate-slide-up">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <AccountSidebar />
+
+          <div className="flex-1 min-w-0 w-full max-w-3xl">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-lg animate-slide-up">
           {isAdmin && !editing && (
             <div className="flex justify-end px-6 pt-4">
               <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg bg-muted hover:bg-border transition-colors" title="Chỉnh sửa">
