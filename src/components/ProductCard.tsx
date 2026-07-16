@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShoppingCart, Eye, Loader2, CheckCircle2, Package } from "lucide-react";
+import { ShoppingCart, Eye, Loader2, CheckCircle2, Package, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,6 +37,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
   const [purchasedOrderId, setPurchasedOrderId] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [showBoost, setShowBoost] = useState(false);
+  const [showInsufficientBalance, setShowInsufficientBalance] = useState(false);
   const isBoost = product_type === "boost";
 
   const tags = description
@@ -45,35 +46,10 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
     .filter(Boolean)
     .slice(0, 3);
 
-  // ✅ XỬ LÝ LỖI SỐ DƯ KHÔNG ĐỦ - GIỐNG Y ẢNH
+  // ✅ XỬ LÝ LỖI SỐ DƯ KHÔNG ĐỦ - DIALOG GIỮA MÀN HÌNH
   const handleInsufficientBalance = (errorMsg: string) => {
     if (errorMsg.includes("không đủ") || errorMsg.includes("Số dư")) {
-      toast({
-        title: "Số dư không đủ, vui lòng nạp thêm",
-        description: (
-          <div className="mt-2 flex flex-col gap-2">
-            <div className="bg-muted/50 rounded-lg p-3 border border-border">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Sản phẩm:</span>
-                <span className="font-semibold text-foreground">{name}</span>
-              </div>
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-muted-foreground">Giá:</span>
-                <span className="font-bold text-primary">{price}</span>
-              </div>
-            </div>
-            <button
-              onClick={() => window.location.href = "/nap-tien"}
-              className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
-            >
-              Nạp ngay
-            </button>
-          </div>
-        ),
-        variant: "destructive",
-        duration: 6000,
-        className: "min-w-[320px] max-w-[400px] !rounded-2xl !shadow-2xl !border-2 !border-red-500/30 !p-6",
-      });
+      setShowInsufficientBalance(true);
       return true;
     }
     return false;
@@ -258,6 +234,31 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
           </DialogContent>
         </Dialog>
       )}
+
+      {/* ⚠️ DIALOG SỐ DƯ KHÔNG ĐỦ - GIỮA MÀN HÌNH, NỀN TRẮNG */}
+      <Dialog open={showInsufficientBalance} onOpenChange={setShowInsufficientBalance}>
+        <DialogContent className="sm:max-w-sm max-w-[90%] rounded-2xl p-6 text-center bg-white dark:bg-white border-0 shadow-2xl">
+          <div className="flex flex-col items-center gap-4 py-4">
+            {/* Icon cảnh báo */}
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            
+            {/* Nội dung */}
+            <DialogTitle className="text-lg font-bold text-gray-900">
+              Số dư không đủ, vui lòng nạp thêm
+            </DialogTitle>
+            
+            {/* Nút OK */}
+            <button
+              onClick={() => setShowInsufficientBalance(false)}
+              className="w-full py-3 bg-blue-600 text-white rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors"
+            >
+              OK
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
