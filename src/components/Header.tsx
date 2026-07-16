@@ -250,7 +250,7 @@ const Header = () => {
                         {categories.map((cat) => (
                           <button
                             key={cat.id}
-                            onClick={() => { navigate(`/?cat=${cat.slug}`); setProductOpen(false); }}
+                            onClick={() => { navigate(`/danh-muc/${cat.slug}`); setProductOpen(false); }}
                             className="flex items-center gap-3 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg text-left"
                           >
                             {cat.image_url ? (
